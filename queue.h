@@ -28,5 +28,10 @@ enum queue_event_type {
 
 int queue_mk();
 int queue_add_fd(int, int, enum queue_event_type, void const*, int);
+int queue_mod_fd(int, int, enum queue_event_type, void const*);
+int queue_rm_fd(int, int);
+int queue_wait(int, queue_event *, size_t, int);
+int queue_event_is_error(queue_event const *);
+void *queue_event_get_data(queue_event const *);
 
 #endif /* QUEUE_H */

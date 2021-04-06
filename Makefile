@@ -2,7 +2,7 @@
 
 include config.mk
 
-SRC = queue utils
+SRC = queue misc
 
 all: ykz
 
@@ -11,7 +11,7 @@ ykz: config.mk config.h main.o $(SRC:=.o)
 
 main.o: config.mk main.c 
 queue.o: config.mk queue.c queue.h
-utils.o: config.mk utils.c utils.h 
+utils.o: config.mk misc.c misc.h 
 
 config.h:
 	cp config.def.h $@

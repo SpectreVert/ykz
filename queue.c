@@ -5,7 +5,7 @@
 */
 
 #include "queue.h"
-#include "utils.h"
+#include "misc.h"
 
 #include <assert.h>
 #include <stdlib.h> // malloc
@@ -59,7 +59,7 @@ queue_add_fd(int qfd, int fd, enum queue_event_type t, void const* data, int sha
 	}
 
 	if (t & e_in)
-		e.events |= EPOLLIN | EPOLLRDHUP;
+		e.events |= EPOLLIN; /* | EPOLLRDHUP; */
 	if (t & e_out)
 		e.events |= EPOLLOUT;
 
@@ -82,6 +82,8 @@ queue_add_fd(int qfd, int fd, enum queue_event_type t, void const* data, int sha
 	if (t & e_out)
 		events |= EVFILT_WRITE;
 
+	EV_SET(&e, fd, events, EV_ADD, 0, 0, (void*)data);
+
 	if (kevent(qfd, &e, 1, 0x0, 0, 0x0) < 0)
 	{
 		warn("kevent:");
@@ -90,4 +92,114 @@ queue_add_fd(int qfd, int fd, enum queue_event_type t, void const* data, int sha
 #endif
 
 	return 0;
+}
+
+int queue_mod_fd(int qfd, int fd, enum queue_event_type t, void const* data)
+{
+#ifdef __linux__
+	struct epoll_event e;
+
+	e.events = EPOLLET;
+
+	if (t & e_in)
+		e.events |= EPOLLIN;
+	if (t & e_out)
+		e.events |= EPOLLOUT;
+
+	e.data.ptr = (void*)data;
+
+	if (epoll_ctl(qfd, EPOLL_CTL_MOD, fd, &e) < 0)
+	{
+		warn("epoll_ctl:");
+		return -1;
+	}
+#else
+	struct kevent e;
+	int events = 0;
+
+	events = EV_CLEAR;
+
+	if (t & e_in)
+		events |= EVFILT_READ;
+	if (t & e_out)
+		events |= EVFILT_WRITE;
+
+	EV_SET(&e, fd, events, EV_ADD, 0, 0 (void*)data);	
+
+	if (kevent(qfd, &e, 1, 0x0, 0, 0x0) < 0)
+	{
+		warn("kevent:");
+		return -1;
+	}
+#endif
+
+	return 0;
+}
+
+int
+queue_rm_fd(int qfd, int fd)
+{
+#ifdef __linux__
+	struct epoll_event e;
+
+	if (epoll_ctl(qfd, EPOLL_CTL_DEL, fd, &e) < 0)
+	{
+		warn("epoll_ctl:");
+		return -1;
+	}
+#else
+	struct kevent e;
+
+	if (kevent(qfd, &e, 1, 0x0, 0, 0x0) < 0)
+	{
+		warn("kevent:");
+		return -1;
+	}
+#endif
+
+	return 0;
+}
+
+/* TODO
+ * add timeout variable
+*/
+int
+queue_wait(int qfd, queue_event *ev, size_t ev_size)
+{
+	ssize_t ev_nb;
+#ifdef __linux__
+	if ((ev_nb = epoll_wait(qfd, ev, ev_size, 0)) < 0)
+	{
+		warn("epoll_wait:");
+		return -1;
+	}
+#else
+	if ((ev_nb = kevent(qfd, 0x0, 0, ev, ev_size, 0x0)) < 0)
+	{
+		warn("kevent:");
+		return -1;
+	}
+#endif
+
+	return 0;	
+}
+
+int
+queue_event_ias_error(queue_event const *e)
+{
+#ifdef __linux__
+	return (e->events & ~(EPOLLIN | EPOLLOUT)) ? 1 : 0;
+#else
+	return (e->flags & EV_EOF) ? 1 : 0;
+#endif
+}
+
+void*
+queue_event_get_data(queue_event const *e)
+{
+#ifdef __linux__
+	return (void*)e->data.ptr;
+#else
+	return (void*)e->udata;
+#endif
 }
