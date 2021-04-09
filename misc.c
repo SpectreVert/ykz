@@ -7,6 +7,7 @@
 #include "misc.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 void
@@ -33,4 +34,16 @@ warn(char const* fmt, ...)
 	va_start(ap,  fmt);
 	err(fmt, ap);
 	va_end(ap);
+}
+
+void
+die(char const* fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	err(fmt, ap);
+	va_end(ap);
+
+	exit(1);
 }

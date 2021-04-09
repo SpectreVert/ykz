@@ -4,13 +4,37 @@
  * 04-04-2021 @ 21:24:11
 */
 
-#include <stdio.h>
 #include "queue.h"
 #include "misc.h"
 
 #include "config.h"
 
+#include <stdio.h>
+#include <signal.h>
+#include <sys/resource.h>
 #include <sys/socket.h>
+#include <unistd.h>
+
+static void
+sighandler(int sig)
+{
+	warn("\nstopping server...");
+	kill(0, sig);
+	_exit(0);
+}
+
+static void
+set_sighandler(void (*handler)(int))
+{
+	struct sigaction ac = { .sa_handler = handler };
+
+	setpgid(0, 0);
+	sigemptyset(&ac.sa_mask);
+	sigaction(SIGINT, &ac, 0x0);
+	sigaction(SIGQUIT, &ac, 0x0);
+	sigaction(SIGTERM, &ac, 0x0);
+	sigaction(SIGHUP, &ac, 0x0);
+}
 
 static void
 usage()
@@ -20,27 +44,25 @@ usage()
 
 int main(int argc, char* argv[])
 {
-	int qfd = queue_mk();
-	int s = socket(AF_INET, SOCK_STREAM, 0);
+	int ssock, res;
+	struct rlimit rlim;
 
-	if (s == -1)
+	if ((ssock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+		die("socket:");
+
+	rlim.rlim_max = rlim.rlim_cur = 1 + 10 + nthreads + nthreads * nslots;
+
+	if ((res = setrlimit(RLIMIT_NOFILE, &rlim)) < 0)
 	{
-		warn("socket:");
-		return 1;
+		if (res == EPERM)
+		{
+			die("You need to have CAP_SYS_RESOURCE set, run as root, "
+			    "or the system cannot offer enough file descriptors");
+		}
+		die("setrlimit:");
 	}
 
-	int res;
-
-	if ((res = queue_add_fd(qfd, s, e_in, 0x0, 0)) < 0)
-		return 1;
-
-	ssize_t ev;
-	queue_event e[1024];
-
-	if ((ev = queue_wait(qfd, e, 1024)) < 0)
-		return 1;
-
-	printf("%ld\n", ev);
+	set_sighandler(&sighandler);
 
 	return 0;
 }

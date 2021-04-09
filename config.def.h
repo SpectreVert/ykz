@@ -1,6 +1,10 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-const int k_max_events = 1024;
+/* number of worker threads */
+const size_t nthreads = 4;
+
+/* slots per worker thread */
+const size_t nslots = 64;
 
 #endif /* CONFIG_H */

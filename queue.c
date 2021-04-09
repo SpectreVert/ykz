@@ -168,7 +168,7 @@ queue_wait(int qfd, queue_event *ev, size_t ev_size)
 {
 	ssize_t ev_nb;
 #ifdef __linux__
-	if ((ev_nb = epoll_wait(qfd, ev, ev_size, 0)) < 0)
+	if ((ev_nb = epoll_wait(qfd, ev, ev_size, -1)) < 0)
 	{
 		warn("epoll_wait:");
 		return -1;
@@ -185,7 +185,7 @@ queue_wait(int qfd, queue_event *ev, size_t ev_size)
 }
 
 int
-queue_event_ias_error(queue_event const *e)
+queue_event_is_error(queue_event const *e)
 {
 #ifdef __linux__
 	return (e->events & ~(EPOLLIN | EPOLLOUT)) ? 1 : 0;
