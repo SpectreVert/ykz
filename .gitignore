@@ -1,4 +1,4 @@
 ykz
-config.h
+config.hpp
 *.a
 *.o

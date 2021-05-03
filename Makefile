@@ -12,14 +12,14 @@ all: ykz
 .cc.o:
 	$(CXX) $(CXXFLAGS) -c $< -o $(basename $<).o
 
-ykz: config.mk config.h $(OBJ)
+ykz: config.mk config.hpp $(OBJ)
 	$(CXX) -o $@ $(CXXFLAGS) $(SRC:.cc=.o) $(LDFLAGS)
 
 main.o: config.mk
 Loader.o: config.mk Loader.hpp
 
-config.h:
-	cp config.def.h $@
+config.hpp:
+	cp config.def.hpp $@
 
 clean:
 	rm -f ykz main.o $(SRC:.cc=.o)

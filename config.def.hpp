@@ -1,5 +1,5 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef _CONFIG_HPP
+#define _CONFIG_HPP
 
 /* number of worker threads */
 const size_t nthreads = 4;
@@ -7,4 +7,4 @@ const size_t nthreads = 4;
 /* slots per worker thread */
 const size_t nslots = 64;
 
-#endif /* CONFIG_H */
+#endif /* _CONFIG_HPP */
