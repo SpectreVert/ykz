@@ -2,20 +2,24 @@
 
 include config.mk
 
-SRC = queue misc server
+SRC = main.cc \
+	  src/Loader.cc
+
+OBJ = $(SRC:.cc=.o)
 
 all: ykz
 
-ykz: config.mk config.h main.o $(SRC:=.o)
-	$(CC) -o $@ $(CFLAGS) main.o $(SRC:=.o) $(LDFLAGS)
+.cc.o:
+	$(CXX) $(CXXFLAGS) -c $< -o $(basename $<).o
 
-main.o: config.mk main.c 
-queue.o: config.mk queue.c queue.h
-server.o: config.mk server.c server.h
-misc.o: config.mk misc.c misc.h 
+ykz: config.mk config.h $(OBJ)
+	$(CXX) -o $@ $(CXXFLAGS) $(SRC:.cc=.o) $(LDFLAGS)
+
+main.o: config.mk
+Loader.o: config.mk Loader.hpp
 
 config.h:
 	cp config.def.h $@
 
 clean:
-	rm -f ykz main.o $(SRC:=.o)
+	rm -f ykz main.o $(SRC:.cc=.o)
