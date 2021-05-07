@@ -22,10 +22,23 @@
 
 namespace ykz {
 
-
-void dtor(void* handler);
-
 class Loader {
+	struct ModuleInstance {
+		using ConstructorType = IModule*();
+
+		virtual ~ModuleInstance() = default;
+
+		static std::unique_ptr<ModuleInstance> load_instance(std::string const&);
+		static void dtor(void*);
+
+		std::shared_ptr<void> binary;
+		std::function<ConstructorType> ctor;
+		std::shared_ptr<IModule> module;
+	};
+
+	std::map<std::string, std::unique_ptr<ModuleInstance>> m_modules;
+
+public:
 	std::string_view constexpr static k_suffix = ".so";
 
 	virtual ~Loader() = default;
@@ -38,22 +51,6 @@ class Loader {
 
 	std::vector<std::string> loaded_modules() const;
 	std::weak_ptr<IModule> instance(std::string const&);
-
-private:
-	struct ModuleInstance {
-		using ConstructorType = IModule*();
-
-		virtual ~ModuleInstance() = default;
-
-		std::unique_ptr<ModuleInstance> static load_instance(std::string const&);
-		void static dtor(void*);
-
-		std::shared_ptr<void> binary;
-		std::function<ConstructorType> ctor;
-		std::shared_ptr<IModule> module;
-	};
-
-	std::map<std::string, std::unique_ptr<ModuleInstance>> m_modules;
 
 }; // class Loader
 

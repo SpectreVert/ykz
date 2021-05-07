@@ -1,0 +1,148 @@
+==750== Helgrind, a thread error detector
+==750== Copyright (C) 2007-2017, and GNU GPL'd, by OpenWorks LLP et al.
+==750== Using Valgrind-3.17.0 and LibVEX; rerun with -h for copyright info
+==750== Command: ./ykz 2
+==750== 
+start
+420
+==750== ---Thread-Announcement------------------------------------------
+==750== 
+==750== Thread #1 is the program's root thread
+==750== 
+==750== ---Thread-Announcement------------------------------------------
+==750== 
+==750== Thread #2 was created
+==750==    at 0x4D0D492: clone (in /lib64/libc-2.33.so)
+==750==    by 0x4872261: create_thread (in /lib64/libpthread-2.33.so)
+==750==    by 0x4873AD8: pthread_create@@GLIBC_2.2.5 (in /lib64/libpthread-2.33.so)
+==750==    by 0x484A147: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==750==    by 0x4972099: std::thread::_M_start_thread(std::unique_ptr<std::thread::_State, std::default_delete<std::thread::_State> >, void (*)()) (in /usr/lib64/libstdc++.so.6.0.29)
+==750==    by 0x40493E: std::thread::thread<ykz::Concurrent<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >::Concurrent(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}, , void>(ykz::Concurrent<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >::Concurrent(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)::{lambda()#1}&&) (thread:149)
+==750==    by 0x4041D7: ykz::Concurrent<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >::Concurrent(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) (Concurrent.hpp:47)
+==750==    by 0x403654: main (main.cc:15)
+==750== 
+==750== ----------------------------------------------------------------
+==750== 
+==750== Possible data race during read of size 8 at 0x4DF1178 by thread #1
+==750== Locks held: none
+==750==    at 0x409C25: std::__uniq_ptr_impl<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter>::_M_ptr() const (unique_ptr.h:173)
+==750==    by 0x409BE4: std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter>::get() const (unique_ptr.h:422)
+==750==    by 0x40C144: std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter>::operator*() const (unique_ptr.h:408)
+==750==    by 0x40C126: std::__future_base::_State_baseV2::wait() (future:338)
+==750==    by 0x404249: std::__basic_future<void>::wait() const (future:703)
+==750==    by 0x403695: main (main.cc:23)
+==750== 
+==750== This conflicts with a previous write of size 8 by thread #2
+==750== Locks held: none
+==750==    at 0x40A000: _ZSt4swapIPNSt13__future_base12_Result_baseEENSt9enable_ifIXsr6__and_ISt6__not_ISt15__is_tuple_likeIT_EESt21is_move_constructibleIS6_ESt18is_move_assignableIS6_EEE5valueEvE4typeERS6_SF_ (move.h:198)
+==750==    by 0x409FA5: std::__uniq_ptr_impl<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter>::swap(std::__uniq_ptr_impl<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter>&) (unique_ptr.h:196)
+==750==    by 0x409BBC: std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter>::swap(std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter>&) (unique_ptr.h:464)
+==750==    by 0x40B090: std::__future_base::_State_baseV2::_M_do_set(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*) (future:577)
+==750==    by 0x40B300: void std::__invoke_impl<void, void (std::__future_base::_State_baseV2::*)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*>(std::__invoke_memfun_deref, void (std::__future_base::_State_baseV2::*&&)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*&&, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*&&, bool*&&) (invoke.h:73)
+==750==    by 0x40B20B: std::__invoke_result<void (std::__future_base::_State_baseV2::*)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*>::type std::__invoke<void (std::__future_base::_State_baseV2::*)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*>(void (std::__future_base::_State_baseV2::*&&)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*&&, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*&&, bool*&&) (invoke.h:95)
+==750==    by 0x40B19B: void std::call_once<void (std::__future_base::_State_baseV2::*)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*>(std::once_flag&, void (std::__future_base::_State_baseV2::*&&)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*&&, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*&&, bool*&&)::{lambda()#1}::operator()() const (mutex:717)
+==750==    by 0x40B11B: void std::call_once<void (std::__future_base::_State_baseV2::*)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*>(std::once_flag&, void (std::__future_base::_State_baseV2::*&&)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*&&, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*&&, bool*&&)::{lambda()#2}::operator()() const (mutex:722)
+==750==  Address 0x4df1178 is 24 bytes inside a block of size 48 alloc'd
+==750==    at 0x4841F6F: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==750==    by 0x408883: __gnu_cxx::new_allocator<std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2> >::allocate(unsigned long, void const*) (new_allocator.h:115)
+==750==    by 0x4087F0: std::allocator_traits<std::allocator<std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2> > >::allocate(std::allocator<std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2> >&, unsigned long) (alloc_traits.h:460)
+==750==    by 0x408620: std::__allocated_ptr<std::allocator<std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2> > > std::__allocate_guarded<std::allocator<std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2> > >(std::allocator<std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2> >&) (allocated_ptr.h:97)
+==750==    by 0x4084BF: std::__shared_count<(__gnu_cxx::_Lock_policy)2>::__shared_count<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>>(std::__future_base::_State_baseV2*&, std::_Sp_alloc_shared_tag<std::allocator<std::__future_base::_State_baseV2> >) (shared_ptr_base.h:680)
+==750==    by 0x408466: std::__shared_ptr<std::__future_base::_State_baseV2, (__gnu_cxx::_Lock_policy)2>::__shared_ptr<std::allocator<std::__future_base::_State_baseV2>>(std::_Sp_alloc_shared_tag<std::allocator<std::__future_base::_State_baseV2> >) (shared_ptr_base.h:1371)
+==750==    by 0x408424: std::shared_ptr<std::__future_base::_State_baseV2>::shared_ptr<std::allocator<std::__future_base::_State_baseV2>>(std::_Sp_alloc_shared_tag<std::allocator<std::__future_base::_State_baseV2> >) (shared_ptr.h:408)
+==750==    by 0x4083AA: std::shared_ptr<std::__future_base::_State_baseV2> std::allocate_shared<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>>(std::allocator<std::__future_base::_State_baseV2> const&) (shared_ptr.h:859)
+==750==    by 0x4082D0: std::shared_ptr<std::__future_base::_State_baseV2> std::make_shared<std::__future_base::_State_baseV2>() (shared_ptr.h:875)
+==750==    by 0x408208: std::promise<void>::promise() (future:1268)
+==750==    by 0x4081E8: void __gnu_cxx::new_allocator<std::promise<void> >::construct<std::promise<void>>(std::promise<void>*) (new_allocator.h:150)
+==750==    by 0x407F9C: void std::allocator_traits<std::allocator<std::promise<void> > >::construct<std::promise<void>>(std::allocator<std::promise<void> >&, std::promise<void>*) (alloc_traits.h:512)
+==750==  Block was alloc'd by thread #1
+==750== 
+==750== ----------------------------------------------------------------
+==750== 
+==750== Possible data race during read of size 8 at 0x4DF1178 by thread #1
+==750== Locks held: none
+==750==    at 0x408C91: std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter>::~unique_ptr() (unique_ptr.h:360)
+==750==    by 0x408D19: std::__future_base::_State_baseV2::~_State_baseV2() (future:328)
+==750==    by 0x409158: void __gnu_cxx::new_allocator<std::__future_base::_State_baseV2>::destroy<std::__future_base::_State_baseV2>(std::__future_base::_State_baseV2*) (new_allocator.h:156)
+==750==    by 0x4090EC: void std::allocator_traits<std::allocator<std::__future_base::_State_baseV2> >::destroy<std::__future_base::_State_baseV2>(std::allocator<std::__future_base::_State_baseV2>&, std::__future_base::_State_baseV2*) (alloc_traits.h:531)
+==750==    by 0x4089D5: std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2>::_M_dispose() (shared_ptr_base.h:560)
+==750==    by 0x40449A: std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release() (shared_ptr_base.h:158)
+==750==    by 0x4043E9: std::__shared_count<(__gnu_cxx::_Lock_policy)2>::~__shared_count() (shared_ptr_base.h:733)
+==750==    by 0x4043B8: std::__shared_ptr<std::__future_base::_State_baseV2, (__gnu_cxx::_Lock_policy)2>::~__shared_ptr() (shared_ptr_base.h:1183)
+==750==    by 0x404394: std::shared_ptr<std::__future_base::_State_baseV2>::~shared_ptr() (shared_ptr.h:121)
+==750==    by 0x404374: std::__basic_future<void>::~__basic_future() (future:682)
+==750==    by 0x404264: std::future<void>::~future() (future:858)
+==750==    by 0x4036BA: main (main.cc:26)
+==750== 
+==750== This conflicts with a previous write of size 8 by thread #2
+==750== Locks held: none
+==750==    at 0x40A000: _ZSt4swapIPNSt13__future_base12_Result_baseEENSt9enable_ifIXsr6__and_ISt6__not_ISt15__is_tuple_likeIT_EESt21is_move_constructibleIS6_ESt18is_move_assignableIS6_EEE5valueEvE4typeERS6_SF_ (move.h:198)
+==750==    by 0x409FA5: std::__uniq_ptr_impl<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter>::swap(std::__uniq_ptr_impl<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter>&) (unique_ptr.h:196)
+==750==    by 0x409BBC: std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter>::swap(std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter>&) (unique_ptr.h:464)
+==750==    by 0x40B090: std::__future_base::_State_baseV2::_M_do_set(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*) (future:577)
+==750==    by 0x40B300: void std::__invoke_impl<void, void (std::__future_base::_State_baseV2::*)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*>(std::__invoke_memfun_deref, void (std::__future_base::_State_baseV2::*&&)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*&&, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*&&, bool*&&) (invoke.h:73)
+==750==    by 0x40B20B: std::__invoke_result<void (std::__future_base::_State_baseV2::*)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*>::type std::__invoke<void (std::__future_base::_State_baseV2::*)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*>(void (std::__future_base::_State_baseV2::*&&)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*&&, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*&&, bool*&&) (invoke.h:95)
+==750==    by 0x40B19B: void std::call_once<void (std::__future_base::_State_baseV2::*)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*>(std::once_flag&, void (std::__future_base::_State_baseV2::*&&)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*&&, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*&&, bool*&&)::{lambda()#1}::operator()() const (mutex:717)
+==750==    by 0x40B11B: void std::call_once<void (std::__future_base::_State_baseV2::*)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*>(std::once_flag&, void (std::__future_base::_State_baseV2::*&&)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*&&, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*&&, bool*&&)::{lambda()#2}::operator()() const (mutex:722)
+==750==  Address 0x4df1178 is 24 bytes inside a block of size 48 alloc'd
+==750==    at 0x4841F6F: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==750==    by 0x408883: __gnu_cxx::new_allocator<std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2> >::allocate(unsigned long, void const*) (new_allocator.h:115)
+==750==    by 0x4087F0: std::allocator_traits<std::allocator<std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2> > >::allocate(std::allocator<std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2> >&, unsigned long) (alloc_traits.h:460)
+==750==    by 0x408620: std::__allocated_ptr<std::allocator<std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2> > > std::__allocate_guarded<std::allocator<std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2> > >(std::allocator<std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2> >&) (allocated_ptr.h:97)
+==750==    by 0x4084BF: std::__shared_count<(__gnu_cxx::_Lock_policy)2>::__shared_count<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>>(std::__future_base::_State_baseV2*&, std::_Sp_alloc_shared_tag<std::allocator<std::__future_base::_State_baseV2> >) (shared_ptr_base.h:680)
+==750==    by 0x408466: std::__shared_ptr<std::__future_base::_State_baseV2, (__gnu_cxx::_Lock_policy)2>::__shared_ptr<std::allocator<std::__future_base::_State_baseV2>>(std::_Sp_alloc_shared_tag<std::allocator<std::__future_base::_State_baseV2> >) (shared_ptr_base.h:1371)
+==750==    by 0x408424: std::shared_ptr<std::__future_base::_State_baseV2>::shared_ptr<std::allocator<std::__future_base::_State_baseV2>>(std::_Sp_alloc_shared_tag<std::allocator<std::__future_base::_State_baseV2> >) (shared_ptr.h:408)
+==750==    by 0x4083AA: std::shared_ptr<std::__future_base::_State_baseV2> std::allocate_shared<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>>(std::allocator<std::__future_base::_State_baseV2> const&) (shared_ptr.h:859)
+==750==    by 0x4082D0: std::shared_ptr<std::__future_base::_State_baseV2> std::make_shared<std::__future_base::_State_baseV2>() (shared_ptr.h:875)
+==750==    by 0x408208: std::promise<void>::promise() (future:1268)
+==750==    by 0x4081E8: void __gnu_cxx::new_allocator<std::promise<void> >::construct<std::promise<void>>(std::promise<void>*) (new_allocator.h:150)
+==750==    by 0x407F9C: void std::allocator_traits<std::allocator<std::promise<void> > >::construct<std::promise<void>>(std::allocator<std::promise<void> >&, std::promise<void>*) (alloc_traits.h:512)
+==750==  Block was alloc'd by thread #1
+==750== 
+==750== ----------------------------------------------------------------
+==750== 
+==750== Possible data race during write of size 8 at 0x4DF1178 by thread #1
+==750== Locks held: none
+==750==    at 0x408CCE: std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter>::~unique_ptr() (unique_ptr.h:362)
+==750==    by 0x408D19: std::__future_base::_State_baseV2::~_State_baseV2() (future:328)
+==750==    by 0x409158: void __gnu_cxx::new_allocator<std::__future_base::_State_baseV2>::destroy<std::__future_base::_State_baseV2>(std::__future_base::_State_baseV2*) (new_allocator.h:156)
+==750==    by 0x4090EC: void std::allocator_traits<std::allocator<std::__future_base::_State_baseV2> >::destroy<std::__future_base::_State_baseV2>(std::allocator<std::__future_base::_State_baseV2>&, std::__future_base::_State_baseV2*) (alloc_traits.h:531)
+==750==    by 0x4089D5: std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2>::_M_dispose() (shared_ptr_base.h:560)
+==750==    by 0x40449A: std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release() (shared_ptr_base.h:158)
+==750==    by 0x4043E9: std::__shared_count<(__gnu_cxx::_Lock_policy)2>::~__shared_count() (shared_ptr_base.h:733)
+==750==    by 0x4043B8: std::__shared_ptr<std::__future_base::_State_baseV2, (__gnu_cxx::_Lock_policy)2>::~__shared_ptr() (shared_ptr_base.h:1183)
+==750==    by 0x404394: std::shared_ptr<std::__future_base::_State_baseV2>::~shared_ptr() (shared_ptr.h:121)
+==750==    by 0x404374: std::__basic_future<void>::~__basic_future() (future:682)
+==750==    by 0x404264: std::future<void>::~future() (future:858)
+==750==    by 0x4036BA: main (main.cc:26)
+==750== 
+==750== This conflicts with a previous write of size 8 by thread #2
+==750== Locks held: none
+==750==    at 0x40A000: _ZSt4swapIPNSt13__future_base12_Result_baseEENSt9enable_ifIXsr6__and_ISt6__not_ISt15__is_tuple_likeIT_EESt21is_move_constructibleIS6_ESt18is_move_assignableIS6_EEE5valueEvE4typeERS6_SF_ (move.h:198)
+==750==    by 0x409FA5: std::__uniq_ptr_impl<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter>::swap(std::__uniq_ptr_impl<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter>&) (unique_ptr.h:196)
+==750==    by 0x409BBC: std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter>::swap(std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter>&) (unique_ptr.h:464)
+==750==    by 0x40B090: std::__future_base::_State_baseV2::_M_do_set(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*) (future:577)
+==750==    by 0x40B300: void std::__invoke_impl<void, void (std::__future_base::_State_baseV2::*)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*>(std::__invoke_memfun_deref, void (std::__future_base::_State_baseV2::*&&)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*&&, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*&&, bool*&&) (invoke.h:73)
+==750==    by 0x40B20B: std::__invoke_result<void (std::__future_base::_State_baseV2::*)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*>::type std::__invoke<void (std::__future_base::_State_baseV2::*)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*>(void (std::__future_base::_State_baseV2::*&&)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*&&, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*&&, bool*&&) (invoke.h:95)
+==750==    by 0x40B19B: void std::call_once<void (std::__future_base::_State_baseV2::*)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*>(std::once_flag&, void (std::__future_base::_State_baseV2::*&&)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*&&, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*&&, bool*&&)::{lambda()#1}::operator()() const (mutex:717)
+==750==    by 0x40B11B: void std::call_once<void (std::__future_base::_State_baseV2::*)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*>(std::once_flag&, void (std::__future_base::_State_baseV2::*&&)(std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*, bool*), std::__future_base::_State_baseV2*&&, std::function<std::unique_ptr<std::__future_base::_Result_base, std::__future_base::_Result_base::_Deleter> ()>*&&, bool*&&)::{lambda()#2}::operator()() const (mutex:722)
+==750==  Address 0x4df1178 is 24 bytes inside a block of size 48 alloc'd
+==750==    at 0x4841F6F: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==750==    by 0x408883: __gnu_cxx::new_allocator<std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2> >::allocate(unsigned long, void const*) (new_allocator.h:115)
+==750==    by 0x4087F0: std::allocator_traits<std::allocator<std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2> > >::allocate(std::allocator<std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2> >&, unsigned long) (alloc_traits.h:460)
+==750==    by 0x408620: std::__allocated_ptr<std::allocator<std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2> > > std::__allocate_guarded<std::allocator<std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2> > >(std::allocator<std::_Sp_counted_ptr_inplace<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>, (__gnu_cxx::_Lock_policy)2> >&) (allocated_ptr.h:97)
+==750==    by 0x4084BF: std::__shared_count<(__gnu_cxx::_Lock_policy)2>::__shared_count<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>>(std::__future_base::_State_baseV2*&, std::_Sp_alloc_shared_tag<std::allocator<std::__future_base::_State_baseV2> >) (shared_ptr_base.h:680)
+==750==    by 0x408466: std::__shared_ptr<std::__future_base::_State_baseV2, (__gnu_cxx::_Lock_policy)2>::__shared_ptr<std::allocator<std::__future_base::_State_baseV2>>(std::_Sp_alloc_shared_tag<std::allocator<std::__future_base::_State_baseV2> >) (shared_ptr_base.h:1371)
+==750==    by 0x408424: std::shared_ptr<std::__future_base::_State_baseV2>::shared_ptr<std::allocator<std::__future_base::_State_baseV2>>(std::_Sp_alloc_shared_tag<std::allocator<std::__future_base::_State_baseV2> >) (shared_ptr.h:408)
+==750==    by 0x4083AA: std::shared_ptr<std::__future_base::_State_baseV2> std::allocate_shared<std::__future_base::_State_baseV2, std::allocator<std::__future_base::_State_baseV2>>(std::allocator<std::__future_base::_State_baseV2> const&) (shared_ptr.h:859)
+==750==    by 0x4082D0: std::shared_ptr<std::__future_base::_State_baseV2> std::make_shared<std::__future_base::_State_baseV2>() (shared_ptr.h:875)
+==750==    by 0x408208: std::promise<void>::promise() (future:1268)
+==750==    by 0x4081E8: void __gnu_cxx::new_allocator<std::promise<void> >::construct<std::promise<void>>(std::promise<void>*) (new_allocator.h:150)
+==750==    by 0x407F9C: void std::allocator_traits<std::allocator<std::promise<void> > >::construct<std::promise<void>>(std::allocator<std::promise<void> >&, std::promise<void>*) (alloc_traits.h:512)
+==750==  Block was alloc'd by thread #1
+==750== 
+done==750== 
+==750== Use --history-level=approx or =none to gain increased speed, at
+==750== the cost of reduced accuracy of conflicting-access information
+==750== For lists of detected and suppressed errors, rerun with: -s
+==750== ERROR SUMMARY: 3 errors from 3 contexts (suppressed: 38 from 22)

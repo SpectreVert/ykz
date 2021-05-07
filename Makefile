@@ -3,7 +3,8 @@
 include config.mk
 
 SRC = main.cc \
-	  src/Loader.cc
+	  src/Loader.cc \
+	  src/Logger.cc
 
 OBJ = $(SRC:.cc=.o)
 
@@ -17,6 +18,7 @@ ykz: config.mk config.hpp $(OBJ)
 
 main.o: config.mk
 Loader.o: config.mk Loader.hpp
+Logger.o: config.mk Logger.hpp
 
 config.hpp:
 	cp config.def.hpp $@
