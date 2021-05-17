@@ -9,38 +9,39 @@
 #ifndef _LOGGER_HPP
 #define _LOGGER_HPP
 
-#include "thread/Concurrent.hpp"
-
-#include <iostream>
+#include <mutex>
 #include <string>
 
+#include <cstdio>
 #include <cstdarg>
+#include <cstring>
 
 namespace ykz {
 
-/*
 class Logger {
-public:
-	struct 
-
-	static void set_prefix(std::string const&);
-	static void reset_prefix();
-
-	static void log(std::string const&);
-	static void log(std::string const&, ...);
-	static void log(std::string const&, va_list);
-
-private:
-	static Logger m_instance;
-	static Concurrent<std::ostream> m_stream;
+	static std::mutex  m_mut;
+	static std::FILE*  m_file;
 	static std::string m_prefix;
+	thread_local static int m_code;
 
+public:
+	static Logger g_logger;
+
+	static Logger& set_prefix(std::string const&);
+	static Logger& reset_prefix();
+	static Logger& set_code(int);
+	// the code code is thread-local and reset after each log call
+
+	static Logger& log(std::string const, ...);
+
+protected:
 	Logger();
 	Logger(Logger const&) = delete;
-
 	void operator=(Logger const&) = delete;
 
-}; // class Logger */
+	static void log(std::string const&, va_list);
+
+}; // class Logger
 
 } // namespace ykz
 

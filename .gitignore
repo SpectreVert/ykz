@@ -1,4 +1,5 @@
 ykz
 config.hpp
 *.a
+*.so
 *.o

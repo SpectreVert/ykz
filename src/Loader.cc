@@ -5,6 +5,7 @@
 */
 
 #include "Loader.hpp"
+#include "Logger.hpp"
 
 #include <exception>
 #include <filesystem>
@@ -20,7 +21,7 @@ std::size_t Loader::load_from_path(std::string const& dpath)
 	{
 		if (code.value())
 		{
-			// TODO log error
+			Logger::set_code(code.value()).log("directory_iterator:");
 			continue;
 		}
 		
@@ -39,13 +40,9 @@ std::size_t Loader::load_from_path(std::string const& dpath)
 
 		if (instance)
 		{
-			// TODO log success
+			Logger::log("loader: loaded %s", fname.c_str());
 			m_modules[fname] = std::move(instance);
 			++i;
-		}
-		else
-		{
-			// TODO log error
 		}
 	}
 
@@ -59,7 +56,7 @@ Loader::ModuleInstance::load_instance(std::string const& fname)
 
 	if (!binary)
 	{
-		// TODO log error
+		Logger::log("loader: %s", dlerror());
 		return std::unique_ptr<ModuleInstance>();
 	}
 
@@ -73,7 +70,7 @@ Loader::ModuleInstance::load_instance(std::string const& fname)
 
 	if (!ctor)
 	{
-		// TODO log error
+		Logger::log("loader: %s", dlerror());
 		return std::unique_ptr<ModuleInstance>();
 	}
 

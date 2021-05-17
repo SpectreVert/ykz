@@ -10,6 +10,8 @@ OBJ = $(SRC:.cc=.o)
 
 all: ykz
 
+re: clean all
+
 .cc.o:
 	$(CXX) $(CXXFLAGS) -c $< -o $(basename $<).o
 

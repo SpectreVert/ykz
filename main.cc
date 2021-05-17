@@ -4,18 +4,20 @@
  * 03-05-2021 @ 20:44:56
 */
 
+#include "Loader.hpp"
 #include "Logger.hpp"
+
+#include <chrono>
+#include <thread>
+
+#include <fcntl.h>
+#include <sys/stat.h>
 
 using namespace ykz;
 
 int main(int ac, char* av[])
 {
-	Concurrent<std::string> l("zonz");
-	std::string zonzibar("azeaze");
+	Loader loader;
 
-	auto fut = l([=](auto s){
-		std::cerr << zonzibar << std::endl;
-	});
-
-	fut.wait();
+	auto s = loader.load_from_path("./");
 }
