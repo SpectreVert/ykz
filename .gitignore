@@ -3,3 +3,5 @@ config.hpp
 *.a
 *.so
 *.o
+.cache/
+compile_commands.json

@@ -32,8 +32,8 @@ class Loader {
 		static void dtor(void*);
 
 		std::shared_ptr<void> binary;
-		std::function<ConstructorType> ctor;
 		std::shared_ptr<IModule> module;
+		std::function<ConstructorType> ctor;
 	};
 
 	std::map<std::string, std::unique_ptr<ModuleInstance>> m_modules;
@@ -45,12 +45,11 @@ public:
 	Loader() = default;
 
 	std::size_t load_from_path(std::string const&);
-
 	std::size_t unload_all();
 	bool unload(std::string const&);
 
 	std::vector<std::string> loaded_modules() const;
-	std::weak_ptr<IModule> instance(std::string const&);
+	std::weak_ptr<IModule> instance(std::string const&) const;
 
 }; // class Loader
 

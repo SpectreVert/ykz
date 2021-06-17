@@ -29,8 +29,7 @@ public:
 
 	static Logger& set_prefix(std::string const&);
 	static Logger& reset_prefix();
-	static Logger& set_code(int);
-	// the code code is thread-local and reset after each log call
+	static Logger& set_code(int); //! code is thread-local
 
 	static Logger& log(std::string const, ...);
 

@@ -38,6 +38,7 @@ std::size_t Loader::load_from_path(std::string const& dpath)
 		// now try to create the ModuleInstance from this shared library
 		auto instance = ModuleInstance::load_instance(fname);
 
+		// just log success -- error is logged in load_instance()
 		if (instance)
 		{
 			Logger::log("loader: loaded %s", fname.c_str());

@@ -6,6 +6,7 @@
 
 #include "Loader.hpp"
 #include "Logger.hpp"
+#include "Config.hpp"
 
 #include <chrono>
 #include <thread>

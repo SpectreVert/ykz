@@ -9,12 +9,15 @@
 #ifndef _IMODULE_HPP
 #define _IMODULE_HPP
 
+#include "Config.hpp"
+
 namespace ykz {
 
 struct IModule {
 	virtual ~IModule() = default;
 
-	virtual void zonze() = 0;
+	virtual void init(Config const&) = 0;
+	virtual void cleanup() = 0;
 };
 
 } // namespace ykz
