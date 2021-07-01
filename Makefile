@@ -18,16 +18,13 @@ re: clean all
 .cc.o:
 	${CXX} ${CXXFLAGS} -c $< -o ${basename $<}.o
 
-ykz: config.mk config.h ${OBJ}
+ykz: config.mk ${OBJ}
 	${CXX} -o $@ ${CXXFLAGS} ${OBJ} ${LDFLAGS}
 
 main.o: config.mk
 Loader.o: config.mk Loader.hpp
 Logger.o: config.mk Logger.hpp
 Config.cc: config.mk Config.hpp
-
-config.h:
-	cp config.def.h $@
 
 clean:
 	rm -f ykz main.o ${SRC:.cc=.o}
