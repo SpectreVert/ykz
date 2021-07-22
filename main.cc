@@ -8,6 +8,8 @@
 #include "Logger.hpp"
 #include "Config.hpp"
 
+#include "Connection.hpp"
+
 #include <chrono>
 #include <thread>
 
