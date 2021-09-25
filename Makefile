@@ -2,7 +2,11 @@
 
 include config.mk
 
-SRC = main.cc src/Loader.cc src/Logger.cc src/Config.cc
+SRC = main.cc \
+	  src/Loader.cc \
+	  src/Logger.cc \
+	  src/TaskBucket.cc
+
 OBJ = $(SRC:.cc=.o)
 
 all: options ykz
@@ -24,7 +28,7 @@ ykz: config.mk ${OBJ}
 main.o: config.mk
 Loader.o: config.mk Loader.hpp
 Logger.o: config.mk Logger.hpp
-Config.cc: config.mk Config.hpp
+TaskBucket.o: config.mk TaskBucket.hpp
 
 clean:
 	rm -f ykz main.o ${SRC:.cc=.o}

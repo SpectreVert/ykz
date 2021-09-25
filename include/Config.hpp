@@ -13,22 +13,25 @@
 
 namespace ykz {
 
-//! Configuration which is used to customize
-//! variables throughout the program.
-//!
+/* configuration which is used to customize the server's behaviour */
 struct Config {
+	struct Core {
+#if 0
+		/// Right now we have one poller and this parameter is unused
+		std::size_t nb_poller  = 2;  /* number of poller threads */
+#endif
+		std::size_t nb_slots   = 64; /* number of clients per poller */
+		std::size_t nb_workers = 4;  /* number of worker threads */
 
-	static struct Core {
-		static std::size_t nb_threads;
-		static std::size_t nb_slots;
+		bool msg_order = true; /* send responses in same order as requests */
 	} core;
 
 	struct Logger {
-		static std::string output_file;
+		std::string output_file = "yzk.log";
 	} logger;
 
 	struct Loader {
-		static std::string modules_directory;
+		std::string modules_directory = "mod";
 	} loader;
 
 }; // struct Config
