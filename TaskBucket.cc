@@ -40,9 +40,9 @@ void TaskBucket::thread_routine()
 			return;
 
 		auto task = get_task();
-		task();
-
 		lck.unlock();
+
+		task();
 	}
 }
 

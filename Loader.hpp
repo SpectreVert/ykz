@@ -28,8 +28,8 @@ class Loader {
 
 		virtual ~ModuleInstance() = default;
 
-		static std::unique_ptr<ModuleInstance> load_instance(std::string const&);
-		static void dtor(void*);
+		std::unique_ptr<ModuleInstance> static load_instance(std::string const&);
+		void static dtor(void*);
 
 		std::shared_ptr<void> binary;
 		std::shared_ptr<IModule> module;

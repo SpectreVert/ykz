@@ -3,9 +3,9 @@
 include config.mk
 
 SRC = main.cc \
-	  src/Loader.cc \
-	  src/Logger.cc \
-	  src/TaskBucket.cc
+	  Loader.cc \
+	  Logger.cc \
+	  TaskBucket.cc
 
 OBJ = $(SRC:.cc=.o)
 
@@ -31,6 +31,6 @@ Logger.o: config.mk Logger.hpp
 TaskBucket.o: config.mk TaskBucket.hpp
 
 clean:
-	rm -f ykz main.o ${SRC:.cc=.o}
+	rm -f ykz ${SRC:.cc=.o}
 
 .PHONY: all options clean re

@@ -22,7 +22,7 @@ class Connection {
 	/* when getting notified that some future has completed for this
 	connection; either check only the first element (if msg_order is set)
 	or check any of them for completion. If the checked response is indeed
-	ready, remove it, send it to the client and redo. */
+	ready, remove it, send the result to the client and redo. */
 	std::deque<std::future<Message>> m_pending_reponses;
 	/* og::net::TcpStream m_stream; */
 

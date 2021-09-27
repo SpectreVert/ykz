@@ -45,14 +45,16 @@ public:
 	std::future<T> schedule_task(std::function<T()> task)
 	{
 		auto promise = std::make_shared<std::promise<T>>();
-		auto future = promise->get_future();
-		auto closure = [lpromise=std::move(promise), ltask=std::move(task)]() mutable {
-				lpromise->set_value(ltask());
+		auto future  = promise->get_future();
+		auto closure = [npromise=std::move(promise), ntask=std::move(task)]() {
+				npromise->set_value(ntask());
+				// maybe add `notify_server` or something
 		};
 
-		std::unique_lock<std::mutex> lck(m_mut);
-		m_bucket.push(std::move(closure));
-		lck.unlock();
+		{
+			std::lock_guard<std::mutex> lck(m_mut);
+			m_bucket.push(std::move(closure));
+		}
 		m_cv.notify_one();
 
 		return future;
