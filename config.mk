@@ -1,8 +1,4 @@
-PREFIX   = /usr/local
-
-CXX       = clang++
-CXXFLAGS += -I. -std=c++17 -pedantic -Wall -Wextra -g3
-#we could do with 14- just replace string_view with char[] or somth
-#CXXFLAGS = -std=c++17 -pedantic -Wall -Wextra -Os -Iinclude/
-LDFLAGS  += -lpthread -ldl
-
+LIBOG    = deps/libOG
+CXX      = clang++
+CXXFLAGS = -I. -I${LIBOG} -std=c++11 -pedantic -Wall -Wextra -g3 -gdwarf-4
+LDFLAGS  = -lpthread -ldl -L${LIBOG} -lOG

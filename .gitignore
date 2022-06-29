@@ -1,7 +1,37 @@
-ykz
-config.hpp
-*.a
-*.so
-*.o
-.cache/
+# Clangd
+.cache/clangd
 compile_commands.json
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+ykz
+*.exe
+*.out
+*.app
