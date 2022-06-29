@@ -28,7 +28,7 @@ Logger& Logger::set_prefix(std::string const& prefix)
 
 Logger& Logger::reset_prefix()
 {
-	m_prefix = "log";
+	m_prefix = "log: ";
 
 	return g_logger;
 }

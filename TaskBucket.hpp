@@ -19,6 +19,7 @@
 
 namespace ykz {
 
+//TODO implement notification that a task has finished
 class TaskBucket {
 	using Task = std::function<void()>;
 
@@ -33,7 +34,7 @@ class TaskBucket {
 
 	// need to acquire lock before going in there
 	bool has_task_nolock() const;
-	Task get_task();
+	Task get_task_nolock();
 
 public:
 	virtual ~TaskBucket();
@@ -54,8 +55,7 @@ public:
 		{
 			std::lock_guard<std::mutex> lck(m_mut);
 			m_bucket.push(std::move(closure));
-		}
-		m_cv.notify_one();
+		} m_cv.notify_one();
 
 		return future;
 	}

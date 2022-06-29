@@ -1,0 +1,134 @@
+<style>
+  :root {
+    --benign: #0fb;
+    --maybe:  #df0;
+    --lock:   #f00;
+    --background: grey;
+    --foreground: #0fb
+  }
+
+  table, th, td {
+    border: 1px solid black;
+    text-align: center;
+  }
+
+  .contention table tbody tr:nth-child(1n+0) td:nth-child(1) {
+    font-weight: bold;
+  }
+
+  .contention table tbody td:first-child {
+    background: var(--foreground)
+  }
+
+  .contention table tbody tr:nth-child(3) td:first-child {
+    background-color: var(--background);
+  }
+
+  .contention table tbody tr:nth-child(4) td:first-child {
+    background-color: var(--background)
+  }
+
+  .communication table tbody tr:nth-child(1n+0) td:nth-child(1) {
+    font-weight: bold;
+  }
+  
+
+</style>
+<div class="contention">
+<table>
+<thead>
+<tr class="header">
+<th>stage</th>
+<th>client fd</th>
+<th>response queue</th>
+<th>cleanup queue</th>
+<th>cmd queue</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>listener</td>
+<td>x</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>worker</td>
+<td></td>
+<td>x</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>cleaner</td>
+<td></td>
+<td></td>
+<td>x</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>master</td>
+<td></td>
+<td></td>
+<td></td>
+<td>x</td>
+</tr>
+</tbody>
+</table>
+<p>Access of data sets during the differents stages of request processing</p>
+</div>
+<hr />
+<div class="communication">
+<table>
+<thead>
+<tr class="header">
+<th>write|read</th>
+<th>listener</th>
+<th>worker</th>
+<th>cleaner</th>
+<th>master</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>listener</td>
+<td></td>
+<td>x</td>
+<td>x</td>
+<td>?</td>
+</tr>
+<tr class="even">
+<td>worker</td>
+<td>x</td>
+<td></td>
+<td>x</td>
+<td>?</td>
+</tr>
+<tr class="odd">
+<td>cleaner</td>
+<td>x</td>
+<td></td>
+<td></td>
+<td>?</td>
+</tr>
+<tr class="even">
+<td>master</td>
+<td>x</td>
+<td>x</td>
+<td>x</td>
+<td>?</td>
+</tr>
+</tbody>
+</table>
+<p>Communication between stages (write/read)</p>
+</div>
+<hr />
+<p><strong>How are you gonna make different staged-threads exchange information?</strong></p>
+<blockquote>
+<p>using pipes</p>
+</blockquote>
+<p><strong>How are you going to handle waiting for client end of socket to be writable?</strong></p>
+<blockquote>
+<p>have backgrounds dispatcher threads that retry responses when ready</p>
+</blockquote>

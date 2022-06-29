@@ -38,7 +38,7 @@ int main(int ac, char* av[])
 	}
 
 	for (std::size_t i = 0; i < 100; ++i) {	
-		std::cout << v[i].get() << std::endl;
+		std::cout << v[i].get() << '\n';
 	}
 
 }

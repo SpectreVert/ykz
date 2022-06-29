@@ -30,7 +30,7 @@ TaskBucket::TaskBucket(std::size_t nb_threads)
 void TaskBucket::thread_routine()
 {
 	for (; !m_is_stopped;) {
-		// we could get locked here if cv is notified at that moment...
+		// TODO: experiment with wait_for so as to avoid deadlock
 		std::unique_lock<std::mutex> lck(m_mut);
 		m_cv.wait(lck, [this]{
 			return has_task_nolock() || m_is_stopped;
@@ -39,7 +39,7 @@ void TaskBucket::thread_routine()
 		if (m_is_stopped)
 			return;
 
-		auto task = get_task();
+		auto task = get_task_nolock();
 		lck.unlock();
 
 		task();
@@ -51,7 +51,7 @@ bool TaskBucket::has_task_nolock() const
 	return m_bucket.size() > 0;
 }
 
-TaskBucket::Task TaskBucket::get_task()
+TaskBucket::Task TaskBucket::get_task_nolock()
 {
 	auto task = std::move(m_bucket.front());
 
