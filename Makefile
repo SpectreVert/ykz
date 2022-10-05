@@ -2,7 +2,8 @@
 
 include config.mk
 
-OBJ = main.o
+OBJ = main.o\
+	  Host.o
 
 all: options ykz
 
@@ -13,7 +14,8 @@ ykz: config.mk ${OBJ}
 .cc.o:
 	${CXX} ${CXXFLAGS} -c $< -o ${basename $<}.o
 
-main.o: config.mk
+main.o: config.mk ykz.config.hpp
+Host.o: Host.hpp config.mk ykz.config.hpp
 
 options:
 	@echo ykz build options:
