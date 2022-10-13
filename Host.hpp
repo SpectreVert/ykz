@@ -43,7 +43,6 @@ struct Host {
 
     og::TcpListener *m_listener{nullptr};
     Guest m_guests[YKZ_MAX_CLIENTS];
-
     std::vector<u32> m_free_slots;
     
     virtual ~Host() = default;
@@ -56,14 +55,6 @@ struct Host {
 
     void on_server_event(og::Event &event);
     void on_client_event(og::Event &event);
-
-    // \return
-    //     -1 : got an error on the socket
-    //      0 : we made no progress
-    //      1 : we made some progress
-    //      2 : we received/sent everything we could
-    s32 on_readable(u64 id);
-    s32 on_writable(u64 id);
 
 }; // struct Host
 
