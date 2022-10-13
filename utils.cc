@@ -13,23 +13,6 @@ namespace ykz {
 
 namespace data {
 
-//! Reset the internal state of `info`.
-//! Should be called for reuse of `Guest` structure assuming a new connection.
-void reset(Guest &info)
-{
-    info.socketfd = og::k_bad_socketfd;
-    refresh(info);
-}
-
-//! Refresh the internal state of the buffer and the meta data.
-//! Should be called before each new request reception.
-void refresh(Guest &info)
-{
-    info.buffer.reset();
-    info.progress = 0;
-    info.data_type = e_NA;
-}
-
 // @Improve Add s32 flags argument to this function
 result rx_buffer(Guest &info)
 {

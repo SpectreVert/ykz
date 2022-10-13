@@ -90,7 +90,7 @@ void Host::on_server_event(og::Event &event)
         return;
     }
 
-    data::reset(m_guests[newid]);
+    YKZ_GUEST_RESET(m_guests[newid]);
     m_guests[newid].socketfd = socketfd;
     m_free_slots.pop_back();
 
@@ -140,6 +140,7 @@ void Host::on_client_event(og::Event &event)
         case data::e_all_done:
             if (YKZ_POLL_REFRESH(id, og::Poll::e_read) < 0)
                 goto error;
+            YKZ_GUEST_REFRESH(m_guests[id]);
             break;
         case data::e_connection_closed:
             goto drop;

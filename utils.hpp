@@ -18,6 +18,19 @@ struct Guest;
 #define YKZ_POLL_REFRESH(t_id, t_interest)\
     m_poll.refresh(m_guests[t_id].socketfd, id, t_interest)
 
+//! Refresh the internal state of the buffer and the meta data.
+//! Should be called before each new request reception.
+#define YKZ_GUEST_REFRESH(t_guest)\
+    t_guest.buffer.reset();\
+    t_guest.progress = 0;\
+    t_guest.data_type = data::e_NA;
+
+//! Reset the internal state of `info`.
+//! Should be called for reuse of `Guest` structure assuming a new connection.
+#define YKZ_GUEST_RESET(t_guest)\
+    t_guest.socketfd = og::k_bad_socketfd;\
+    YKZ_GUEST_REFRESH(t_guest)
+
 namespace data {
 
 enum type : s32 {
@@ -35,9 +48,6 @@ enum result : s32 {
 
     e_error = -1,
 };
-
-void reset(Guest &info);
-void refresh(Guest &info);
 
 result rx_buffer(Guest &info);
 result tx_response(Guest &info);
