@@ -3,7 +3,8 @@
 include config.mk
 
 OBJ = main.o\
-	  Host.o
+	  Host.o\
+	  utils.o\
 
 all: options ykz
 
@@ -16,6 +17,7 @@ ykz: config.mk ${OBJ}
 
 main.o: config.mk ykz.config.hpp
 Host.o: Host.hpp config.mk ykz.config.hpp
+utils.o: utils.hpp config.mk ykz.config.hpp
 
 options:
 	@echo ykz build options:

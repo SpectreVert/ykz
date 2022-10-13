@@ -12,7 +12,6 @@
 #include "./ykz.config.hpp"
 
 #include "og/Buffer.hpp"
-#include "og/internal.hpp"
 
 #include "sys/socket.h"
 

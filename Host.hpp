@@ -6,54 +6,43 @@
  * see LICENSE
 */
 
-#ifndef HOST_HPP_
-#define HOST_HPP_
+#ifndef YKZ_HOST_HPP_
+#define YKZ_HOST_HPP_
 
-#include "Buffers.hpp"
+#include "buffers.hpp"
 
 #include "og/Poll.hpp"
 #include "og/TcpListener.hpp"
 
 #include <vector>
 
-#include "ykz.config.hpp"
+#include "./ykz.config.hpp"
 
 namespace ykz {
 
 using og::s32;
 using og::u32;
 
-// Host - Default host class
+// Guest - visitor portfolio
+//
+struct Guest {
+    s32 socketfd{og::k_bad_socketfd};
+    StaticBuffer<YKZ_BUFFER_SIZE> buffer;
+    u64 progress{0};
+
+    s32 data_type{0};
+    s32 fd{-1};
+    // @Implement stream resource
+};
+
+// Host - server mainframe
 //
 struct Host {
     og::Poll m_poll;
     og::Events m_events;
 
     og::TcpListener *m_listener{nullptr};
-    struct MetaInfo {
-        enum {
-            e_unknown,
-            e_static_buffer,
-            e_dynamic_buffer,
-            e_file
-        };
-
-        void reset() {
-            socketfd = og::k_bad_socketfd;
-            refresh();
-        }
-
-        void refresh() {
-            resource_type = e_unknown;
-            response_progress = 0;
-            buffer.reset();
-        }
-
-        s32 socketfd{og::k_bad_socketfd};
-        u32 resource_type{e_unknown};
-        u64 response_progress{0};
-        StaticBuffer<YKZ_MSG_SIZE> buffer;
-    } m_info[YKZ_MAX_CLIENTS];
+    Guest m_guests[YKZ_MAX_CLIENTS];
 
     std::vector<u32> m_free_slots;
     
@@ -76,10 +65,8 @@ struct Host {
     s32 on_readable(u64 id);
     s32 on_writable(u64 id);
 
-    bool is_request_valid(MetaInfo &info);
-
 }; // struct Host
 
 } // namespace ykz
 
-#endif /* HOST_HPP_ */
+#endif /* YKZ_HOST_HPP_ */
