@@ -15,9 +15,9 @@ ykz: config.mk ${OBJ}
 .cc.o:
 	${CXX} ${CXXFLAGS} -c $< -o ${basename $<}.o
 
-main.o: config.mk ykz.config.hpp
-Host.o: Host.hpp config.mk ykz.config.hpp
-utils.o: utils.hpp config.mk ykz.config.hpp
+main.o: Protocol.hpp config.mk ykz.config.hpp
+Host.o: Host.hpp Protocol.hpp config.mk ykz.config.hpp
+utils.o: utils.hpp Protocol.hpp config.mk ykz.config.hpp
 
 options:
 	@echo ykz build options:

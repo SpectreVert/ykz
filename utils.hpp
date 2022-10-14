@@ -22,7 +22,7 @@ struct Guest;
 #define YKZ_GUEST_REFRESH(t_guest)\
     t_guest.buffer.reset();\
     t_guest.progress = 0;\
-    t_guest.data_type = data::e_NA;
+    t_guest.data_type = data::e_buffer;
 
 //! Reset the internal state of `info`.
 #define YKZ_GUEST_RESET(t_guest)\
@@ -32,8 +32,7 @@ struct Guest;
 namespace data {
 
 enum type : s32 {
-    e_NA = 0,
-    e_buffer,
+    e_buffer = 0,
     e_file,
     /* e_stream, @Implement */
 };

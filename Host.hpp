@@ -10,11 +10,13 @@
 #define YKZ_HOST_HPP_
 
 #include "buffers.hpp"
+#include "Protocol.hpp"
 
 #include "og/Poll.hpp"
 #include "og/TcpListener.hpp"
 
 #include <vector>
+#include <memory>
 
 #include "./ykz.config.hpp"
 
@@ -30,7 +32,7 @@ struct Guest {
     StaticBuffer<YKZ_BUFFER_SIZE> buffer;
     u64 progress{0};
 
-    s32 data_type{0};
+    data::type data_type{data::e_buffer};
     s32 fd{-1};
     // @Implement stream resource
 };
@@ -40,17 +42,18 @@ struct Guest {
 struct Host {
     og::Poll m_poll;
     og::Events m_events;
+    std::unique_ptr<og::TcpListener> m_listener{nullptr};
 
-    og::TcpListener *m_listener{nullptr};
     Guest m_guests[YKZ_MAX_CLIENTS];
     std::vector<u32> m_free_slots;
+    Protocol m_proto;
     
     virtual ~Host() = default;
     Host() = default;
     Host(Host const &) = delete;
     Host(Host &&) = delete;
 
-    void start(); // ?
+    void start(og::SocketAddr &addr);
     void stop();  // ?
 
     void on_server_event(og::Event &event);

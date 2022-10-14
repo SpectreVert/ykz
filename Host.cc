@@ -14,11 +14,11 @@
 
 namespace ykz {
 
-void Host::start()
+void Host::start(og::SocketAddr &addr)
 {
-    og::SocketAddrV4 addr(og::Ipv4("127.0.0.1"), 6970);
+    m_proto.init();
 
-    m_listener = new og::TcpListener();
+    m_listener = std::unique_ptr<og::TcpListener>(new og::TcpListener());
 
     if (m_listener->bind(addr) < 0) {
         std::cout << "bind error\n";
@@ -98,13 +98,6 @@ void Host::on_server_event(og::Event &event)
     std::cout << "Client accept, id: " << newid << "\n";
 }
 
-bool static is_request_valid(Guest &info)
-{
-    info.data_type = data::e_buffer;
-
-    return true;
-}
-
 void Host::on_client_event(og::Event &event)
 {
 
@@ -119,11 +112,9 @@ void Host::on_client_event(og::Event &event)
             break;
         case data::e_made_progress:
         case data::e_all_done:
-            //if (m_prot->is_request_valid(m_guests[id])) {
-            if (is_request_valid(m_guests[id])) {
+            if (!m_proto.okay(m_guests[id])) {
                 if (YKZ_POLL_REFRESH(id, og::Poll::e_write) < 0)
                     goto error;
-                //! <<----- Process Here ----->>
             } break;
         case data::e_connection_closed:
             goto drop;
