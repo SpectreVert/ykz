@@ -33,42 +33,20 @@ using og::s64;
 //
 struct Guest {
     s32 socketfd{og::k_bad_socketfd};
-    StaticBuffer<YKZ_BUFFER_SIZE> buffer;
     u64 progress{0};
-
-    data::type data_type{data::e_buffer};
-    s32 fd{-1};
-    // @Implement stream resource
+    StaticBuffer<YKZ_BUFFER_SIZE> buffer;
+    data::type d{data::e_buffer};
 };
 
 // Host - server mainframe
 //
 struct Host {
-    // @Cleanup(SpectreVert): 
-    og::Poll m_poll; // this should be pertaining to each worker thread
-    og::Events m_events; // ditto
+    bool is_started{false};
+    og::TcpListener m_insock{};
+    std::thread m_workers[YKZ_NB_WORKERS];
 
-    // This also doesn't need to be stored here as the FD is the only real
-    // needed data that needs to be shared
-    std::unique_ptr<og::TcpListener> m_listener{nullptr}; 
-
-    Guest m_guests[YKZ_MAX_CLIENTS]; // move to thread
-    std::vector<u32> m_free_slots; // same
-
-    Protocol m_proto;
-    std::thread m_thd;
-    ipc::Pipe m_pipe;
-
-    Host(Host const &) = delete;
-    Host(Host &&) = delete;
-
-    void start(og::SocketAddr &addr);
-    void stop();
-
-    void set_signal_handler() const;
-
-    void on_server_event(og::Event &event);
-    void on_client_event(og::Event &event);
+    void start(og::SocketAddr &addr, Protocol *proto);
+    void join();
 
 }; // struct Host
 

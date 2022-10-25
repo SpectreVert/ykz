@@ -5,6 +5,7 @@
 */
 
 #include <iostream>
+#include <csignal>
 
 #include "Host.hpp"
 
@@ -14,27 +15,36 @@
 
 using namespace ykz;
 
+void sigcleanup(int sig)
+{
+    kill(0, sig);
+    _exit(1);
+}
+
+void handle_signals(const std::initializer_list<s32> sigs, void(*handler)(int))
+{
+    struct sigaction sa; std::memset(&sa, 0, sizeof(sa));
+
+    sa.sa_handler = handler;
+    sigemptyset(&sa.sa_mask);
+    for (auto sig : sigs) {
+        sigaction(sig, &sa, 0x0);
+    }
+}
+
 int main(int ac, char *av[])
 {
     Host h;
+    Protocol p;
     og::SocketAddr addr(
         og::Ipv4(127, 0, 0, 1), 
         6970
     );
 
-    signal::Filter f{SIGINT, SIGTERM};
-    h.start(addr);
+    handle_signals({SIGTERM, SIGHUP, SIGINT, SIGQUIT}, &sigcleanup);
 
-    YKZ_LOG("Server started\n");
-
-    f.wait_with_handler([](s32 signum) -> bool { (void) signum;
-        constexpr char k_msg[] = "SHUTDOWN";\
-        write(signal::the_fx_fd, k_msg, sizeof(k_msg));\
-        return true;
-    });
-
-    h.stop();
-    YKZ_LOG("Server stopped\n");
+    h.start(addr, &p);
+    h.join();
 
     // ykz::Slab<std::string, 15> slab;
     // std::cout << slab.insert(std::string("Grosse farce")) << '\n';

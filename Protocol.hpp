@@ -34,7 +34,7 @@ struct Protocol {
     };
     okay_fn okay = [](Guest &info) -> s32 { (void) info;
         std::cout << "Hello, Sailor!\n";
-        return 0;
+        return 1;
     };
     cleanup_fn cleanup = []() -> s32 {
         std::cout << "Cleaning up Module\n";

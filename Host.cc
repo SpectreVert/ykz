@@ -15,126 +15,64 @@
 
 namespace ykz {
 
-void Host::start(og::SocketAddr &addr)
+static void
+server_event(s32 handle, Guest *guests, og::Poll &p, og::Event &ev)
 {
-    m_proto.init();
-    m_listener = std::unique_ptr<og::TcpListener>(new og::TcpListener());
+    s32 newsock;
+    og::SocketAddr addr{{0, 0, 0, 0}, 0};
 
-    // @TODO : remove this error checking verbosity with logger
-    if (m_listener->bind(addr) < 0) {
-        std::cout << "bind error\n";
-        return;
-    }
-
-    if (m_listener->listen(SOMAXCONN) < 0) {
-        std::cout << "listen error\n";
-        return;
-    }
-
-    std::cout << "serving 127.0.0.1:6970 (or something else)\n";
-
-    for (u32 i = 0; i < YKZ_MAX_CLIENTS; i++) {
-        m_free_slots.push_back(i);
-    }
-
-    // @TODO Change these polling IDS
-    if (m_poll.add(m_listener->handle(), 256, og::Poll::e_read|og::Poll::e_shared) < 0) {
-        std::cout << "poll add error\n";
-        return;
-    }
-
-    if (m_poll.add(m_pipe.in(), 257, og::Poll::e_read) < 0) {
-        std::cout << "poll add blabla error\n";
-        return;
-    }
-
-    m_thd = std::thread([this]() {
-        og::Events events;
-
-        for (;;) {
-            std::cout << "Wait for event...\n";
-            if (m_poll.poll(events, -1) < 0) {
-                continue;
-            }
-
-            for (auto event : events) {
-                switch (event.id()) {
-                case 256:
-                    on_server_event(event);
-                    break;
-                case 257:
-                    // @TODO: write closing piece
-                    std::cout << "Closing mofo server\n";
-                    return;
-                default:
-                    on_client_event(event);
-                    break;
-                }
-            }
-        }
-    });
-}
-
-void Host::stop()
-{
-    constexpr static char k_msg[] = "SHUTDOWN";
-
-    write(m_pipe.out(), k_msg, sizeof(k_msg));
-    m_thd.join();
-}
-
-void Host::on_server_event(og::Event &event)
-{
-    s32 socketfd;
-
-    if (!event.is_readable()) {
+    if (!ev.is_readable()) {
         // Log error
         return;
     }
 
-    if ((socketfd = m_listener->accept_handle()) == og::k_bad_socketfd) {
-        // Log accept error
+    if ((newsock = og::intl::accept(handle, addr)) == og::k_bad_socketfd) {
+        YKZ_LOG("Accept error: %s\n", strerror(errno));
+        // @Todo @Log accept error
         return;
     }
-
-    if (m_free_slots.empty()) {
-        // Log client capacity reached- drop client
-        og::intl::close(socketfd);
-        return;
-    }
-
-    auto newid = m_free_slots.back();
     
-    if (m_poll.add(socketfd, newid, og::Poll::e_read) < 0) {
-        // Log monitor error- drop client
-        og::intl::close(socketfd);
+    u32 id = 0;
+    for (; id < YKZ_NB_CLIENTS; id++) {
+        if (guests[id].socketfd == og::k_bad_socketfd) {
+            break;
+        }
+    }
+
+    if (id == YKZ_NB_CLIENTS) {
+        YKZ_LOG("NO MORE ROOM\n");
+        og::intl::close(newsock);
         return;
     }
 
-    YKZ_GUEST_RESET(m_guests[newid]);
-    m_guests[newid].socketfd = socketfd;
-    m_free_slots.pop_back();
+    if (p.add(newsock, id, og::Poll::e_read) < 0) {
+        YKZ_LOG("Poll add: %s\n", strerror(errno));
+        og::intl::close(newsock);
+        return;
+    }
 
-    // Log new client accepted
-    std::cout << "Client accept, id: " << newid << "\n";
+    YKZ_CX_RESET(guests[id]);
+    guests[id].socketfd = newsock;
+    YKZ_LOG("Accepted new client\n");
 }
 
-void Host::on_client_event(og::Event &event)
+static void
+guest_event(Protocol *proto, Guest &guest, og::Poll &p, og::Event ev)
 {
 
-    auto id = event.id();
+    auto id = ev.id();
 
-    if (event.is_error())
+    if (ev.is_error())
         goto error;
 
-    if (event.is_readable()) {
-        switch (data::rx_buffer(m_guests[id])) {
+    if (ev.is_readable()) {
+        switch (data::rx_buffer(guest)) {
         case data::e_nothing:
             break;
         case data::e_made_progress:
         case data::e_all_done:
-            if (!m_proto.okay(m_guests[id])) {
-                if (YKZ_POLL_REFRESH(id, og::Poll::e_write) < 0)
+            if (proto->okay(guest)) {
+                if (p.refresh(guest.socketfd, id, og::Poll::e_write) < 0)
                     goto error;
             } break;
         case data::e_connection_closed:
@@ -144,15 +82,15 @@ void Host::on_client_event(og::Event &event)
         }
     }
 
-    if (event.is_writable()) {
-        switch (data::tx_response(m_guests[id])) {
+    if (ev.is_writable()) {
+        switch (data::tx_response(guest)) {
         case data::e_nothing:
         case data::e_made_progress:
             break;
         case data::e_all_done:
-            if (YKZ_POLL_REFRESH(id, og::Poll::e_read) < 0)
+            if (p.refresh(guest.socketfd, id, og::Poll::e_read) < 0)
                 goto error;
-            YKZ_GUEST_REFRESH(m_guests[id]);
+            YKZ_CX_REFRESH(guest);
             break;
         case data::e_connection_closed:
             goto drop;
@@ -160,14 +98,81 @@ void Host::on_client_event(og::Event &event)
             goto error;
         }
     }
-
-
     return;
 error:
     std::cout << "got error\n";
 drop:
-    og::intl::close(m_guests[id].socketfd);
-    m_free_slots.push_back(id);
+    og::intl::close(guest.socketfd);
+    YKZ_CX_RESET(guest);
+}
+
+static void host_worker_fn(s32 handle, Protocol *proto)
+{
+    og::Poll p;
+    og::Events evs;
+    Guest *guests = new Guest[YKZ_NB_CLIENTS];
+
+    if (p.add(handle, YKZ_NB_CLIENTS, og::Poll::e_read|og::Poll::e_shared) < 0) {
+        YKZ_LOG("POLL ADD ERROR: %s\n", strerror(errno));
+        // @Todo log
+        return;
+    }
+
+    for (;;) {
+        YKZ_LOG("WAIT FOR EVENT\n");
+        if (p.poll(evs, -1) < 0) {
+            continue;
+        }
+
+        for (auto ev : evs) {
+            switch (ev.id()) {
+            case YKZ_NB_CLIENTS:
+                server_event(handle, guests, p, ev);
+                break;
+            default:
+                guest_event(proto, guests[ev.id()], p, ev);
+                break;
+            }
+        }
+    }
+}
+
+void Host::start(og::SocketAddr &addr, Protocol *proto)
+{
+    proto->init();
+
+    if (m_insock.bind(addr) < 0) {
+        YKZ_LOG("Bind error: %s\n", strerror(errno));
+        return;
+    }
+
+    if (m_insock.listen(SOMAXCONN) < 0) {
+        YKZ_LOG("Listen error: %s\n", strerror(errno));
+        return;
+    }
+
+    YKZ_LOG("Preparing to serve %s:%d\n",
+            addr.addr.v4.ip_host_order().to_string().c_str(),
+            addr.addr.v4.port_host_order()
+    );
+
+    for (u32 i = 0; i < YKZ_NB_WORKERS; i++)
+        m_workers[i] = std::thread(host_worker_fn, m_insock.handle(), proto);
+
+    this->is_started = true;
+    // @Todo log server started ; join or continue.
+}
+
+void Host::join()
+{
+    if (!is_started)
+        return;
+
+    for (u32 i = 0; i < YKZ_NB_WORKERS; i++)
+    {
+        if (m_workers[i].joinable())
+            m_workers[i].join();
+    }
 }
 
 } // namespace ykz
