@@ -12,18 +12,22 @@
 #include "buffers.hpp"
 #include "Protocol.hpp"
 
+#include "og/defs.hpp"
 #include "og/Poll.hpp"
 #include "og/TcpListener.hpp"
 
 #include <vector>
 #include <memory>
+#include <thread>
+#include <unistd.h>
+#include <sys/wait.h>
 
 #include "./ykz.config.hpp"
 
 namespace ykz {
 
-using og::s32;
 using og::u32;
+using og::s64;
 
 // Guest - visitor portfolio
 //
@@ -40,21 +44,28 @@ struct Guest {
 // Host - server mainframe
 //
 struct Host {
-    og::Poll m_poll;
-    og::Events m_events;
-    std::unique_ptr<og::TcpListener> m_listener{nullptr};
+    // @Cleanup(SpectreVert): 
+    og::Poll m_poll; // this should be pertaining to each worker thread
+    og::Events m_events; // ditto
 
-    Guest m_guests[YKZ_MAX_CLIENTS];
-    std::vector<u32> m_free_slots;
+    // This also doesn't need to be stored here as the FD is the only real
+    // needed data that needs to be shared
+    std::unique_ptr<og::TcpListener> m_listener{nullptr}; 
+
+    Guest m_guests[YKZ_MAX_CLIENTS]; // move to thread
+    std::vector<u32> m_free_slots; // same
+
     Protocol m_proto;
-    
-    virtual ~Host() = default;
-    Host() = default;
+    std::thread m_thd;
+    ipc::Pipe m_pipe;
+
     Host(Host const &) = delete;
     Host(Host &&) = delete;
 
     void start(og::SocketAddr &addr);
-    void stop();  // ?
+    void stop();
+
+    void set_signal_handler() const;
 
     void on_server_event(og::Event &event);
     void on_client_event(og::Event &event);

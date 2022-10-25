@@ -11,15 +11,16 @@
 #include "og/TcpStream.hpp"
 
 #include <iostream>
+#include <fcntl.h>
 
 namespace ykz {
 
 void Host::start(og::SocketAddr &addr)
 {
     m_proto.init();
-
     m_listener = std::unique_ptr<og::TcpListener>(new og::TcpListener());
 
+    // @TODO : remove this error checking verbosity with logger
     if (m_listener->bind(addr) < 0) {
         std::cout << "bind error\n";
         return;
@@ -30,36 +31,56 @@ void Host::start(og::SocketAddr &addr)
         return;
     }
 
-    std::cout << "serving 127.0.0.1:6970\n";
+    std::cout << "serving 127.0.0.1:6970 (or something else)\n";
 
     for (u32 i = 0; i < YKZ_MAX_CLIENTS; i++) {
         m_free_slots.push_back(i);
     }
 
+    // @TODO Change these polling IDS
     if (m_poll.add(m_listener->handle(), 256, og::Poll::e_read|og::Poll::e_shared) < 0) {
         std::cout << "poll add error\n";
         return;
     }
 
-    og::Events events;
+    if (m_poll.add(m_pipe.in(), 257, og::Poll::e_read) < 0) {
+        std::cout << "poll add blabla error\n";
+        return;
+    }
 
-    for (;;) {
-        std::cout << "Wait for event...\n";
-        if (m_poll.poll(events, -1) < 0) {
-            continue;
-        }
+    m_thd = std::thread([this]() {
+        og::Events events;
 
-        for (auto event : events) {
-            switch (event.id()) {
-            case 256:
-                on_server_event(event);
-                break;
-            default:
-                on_client_event(event);
-                break;
+        for (;;) {
+            std::cout << "Wait for event...\n";
+            if (m_poll.poll(events, -1) < 0) {
+                continue;
+            }
+
+            for (auto event : events) {
+                switch (event.id()) {
+                case 256:
+                    on_server_event(event);
+                    break;
+                case 257:
+                    // @TODO: write closing piece
+                    std::cout << "Closing mofo server\n";
+                    return;
+                default:
+                    on_client_event(event);
+                    break;
+                }
             }
         }
-    }
+    });
+}
+
+void Host::stop()
+{
+    constexpr static char k_msg[] = "SHUTDOWN";
+
+    write(m_pipe.out(), k_msg, sizeof(k_msg));
+    m_thd.join();
 }
 
 void Host::on_server_event(og::Event &event)

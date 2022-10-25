@@ -8,11 +8,33 @@
 
 #include "Host.hpp"
 
+#include "Protocol.hpp"
+
+#include "utils.hpp"
+
+using namespace ykz;
+
 int main(int ac, char *av[])
 {
-    ykz::Host h;
+    Host h;
+    og::SocketAddr addr(
+        og::Ipv4(127, 0, 0, 1), 
+        6970
+    );
 
-    h.start();
+    signal::Filter f{SIGINT, SIGTERM};
+    h.start(addr);
+
+    YKZ_LOG("Server started\n");
+
+    f.wait_with_handler([](s32 signum) -> bool { (void) signum;
+        constexpr char k_msg[] = "SHUTDOWN";\
+        write(signal::the_fx_fd, k_msg, sizeof(k_msg));\
+        return true;
+    });
+
+    h.stop();
+    YKZ_LOG("Server stopped\n");
 
     // ykz::Slab<std::string, 15> slab;
     // std::cout << slab.insert(std::string("Grosse farce")) << '\n';
