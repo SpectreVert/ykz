@@ -33,13 +33,13 @@ server_event(s32 handle, Guest *guests, og::Poll &poll, og::Event &event)
     }
     
     u32 id = 0;
-    for (; id < YKZ_NB_CLIENTS; id++) {
+    for (; id < GUESTS_MAX; id++) {
         if (guests[id].socketfd == og::k_bad_socketfd) {
             break;
         }
     }
 
-    if (id == YKZ_NB_CLIENTS) {
+    if (id == GUESTS_MAX) {
         YKZ_LOG("NO MORE ROOM\n");
         og::intl::close(newsock);
         return;
@@ -110,9 +110,9 @@ static void host_worker_fn(s32 handle, Protocol *proto)
 {
     og::Poll poll;
     og::Events events;
-    Guest *guests = new Guest[YKZ_NB_CLIENTS];
+    Guest *guests = new Guest[GUESTS_MAX];
 
-    if (poll.add(handle, YKZ_NB_CLIENTS, og::Poll::e_read|og::Poll::e_shared) < 0) {
+    if (poll.add(handle, GUESTS_MAX, og::Poll::e_read|og::Poll::e_shared) < 0) {
         YKZ_LOG("POLL ADD ERROR: %s\n", strerror(errno));
         // @Todo log
         return;
@@ -126,7 +126,7 @@ static void host_worker_fn(s32 handle, Protocol *proto)
 
         for (auto event : events) {
             switch (event.id()) {
-            case YKZ_NB_CLIENTS:
+            case GUESTS_MAX:
                 server_event(handle, guests, poll, event);
                 break;
             default:
@@ -156,7 +156,7 @@ void Host::start(og::SocketAddr &addr, Protocol *proto)
             addr.addr.v4.port_host_order()
     );
 
-    for (u32 i = 0; i < YKZ_NB_WORKERS; i++)
+    for (u32 i = 0; i < NB_WORKERS; i++)
         m_workers[i] = std::thread(host_worker_fn, m_insock.handle(), proto);
 
     this->is_started = true;
@@ -168,7 +168,7 @@ void Host::join()
     if (!is_started)
         return;
 
-    for (u32 i = 0; i < YKZ_NB_WORKERS; i++)
+    for (u32 i = 0; i < NB_WORKERS; i++)
     {
         if (m_workers[i].joinable())
             m_workers[i].join();

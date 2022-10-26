@@ -34,7 +34,7 @@ using og::s64;
 struct Guest {
     s32 socketfd{og::k_bad_socketfd};
     u64 progress{0};
-    StaticBuffer<YKZ_BUFFER_SIZE> buffer;
+    StaticBuffer<BUFFER_SIZE> buffer;
     data::type d{data::e_buffer};
 };
 
@@ -43,7 +43,7 @@ struct Guest {
 struct Host {
     bool is_started{false};
     og::TcpListener m_insock{};
-    std::thread m_workers[YKZ_NB_WORKERS];
+    std::thread m_workers[NB_WORKERS];
 
     void start(og::SocketAddr &addr, Protocol *proto);
     void join();

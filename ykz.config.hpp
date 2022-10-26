@@ -1,9 +1,11 @@
-//
-// Configuration file for ykz
-//
+#ifndef YKZ_CONFIG_HPP_
+#define YKZ_CONFIG_HPP_
 
-#define YKZ_NB_CLIENTS 64
+#define BUFFER_SIZE 4096
 
-#define YKZ_NB_WORKERS 4
+/* The total number of slots is GUESTS_MAX * NB_WORKERS */
+#define GUESTS_MAX 64
 
-#define YKZ_BUFFER_SIZE 4096
+#define NB_WORKERS 4
+
+#endif /* YKZ_CONFIG_HPP_ */
