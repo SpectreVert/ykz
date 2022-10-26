@@ -16,12 +16,12 @@
 namespace ykz {
 
 static void
-server_event(s32 handle, Guest *guests, og::Poll &p, og::Event &ev)
+server_event(s32 handle, Guest *guests, og::Poll &poll, og::Event &event)
 {
     s32 newsock;
     og::SocketAddr addr{{0, 0, 0, 0}, 0};
 
-    if (!ev.is_readable()) {
+    if (!event.is_readable()) {
         // Log error
         return;
     }
@@ -45,7 +45,7 @@ server_event(s32 handle, Guest *guests, og::Poll &p, og::Event &ev)
         return;
     }
 
-    if (p.add(newsock, id, og::Poll::e_read) < 0) {
+    if (poll.add(newsock, id, og::Poll::e_read) < 0) {
         YKZ_LOG("Poll add: %s\n", strerror(errno));
         og::intl::close(newsock);
         return;
@@ -57,22 +57,22 @@ server_event(s32 handle, Guest *guests, og::Poll &p, og::Event &ev)
 }
 
 static void
-guest_event(Protocol *proto, Guest &guest, og::Poll &p, og::Event ev)
+guest_event(Protocol *proto, Guest &guest, og::Poll &poll, og::Event event)
 {
 
-    auto id = ev.id();
+    auto id = event.id();
 
-    if (ev.is_error())
+    if (event.is_error())
         goto error;
 
-    if (ev.is_readable()) {
+    if (event.is_readable()) {
         switch (data::rx_buffer(guest)) {
         case data::e_nothing:
             break;
         case data::e_made_progress:
         case data::e_all_done:
             if (proto->okay(guest)) {
-                if (p.refresh(guest.socketfd, id, og::Poll::e_write) < 0)
+                if (poll.refresh(guest.socketfd, id, og::Poll::e_write) < 0)
                     goto error;
             } break;
         case data::e_connection_closed:
@@ -82,13 +82,13 @@ guest_event(Protocol *proto, Guest &guest, og::Poll &p, og::Event ev)
         }
     }
 
-    if (ev.is_writable()) {
+    if (event.is_writable()) {
         switch (data::tx_response(guest)) {
         case data::e_nothing:
         case data::e_made_progress:
             break;
         case data::e_all_done:
-            if (p.refresh(guest.socketfd, id, og::Poll::e_read) < 0)
+            if (poll.refresh(guest.socketfd, id, og::Poll::e_read) < 0)
                 goto error;
             YKZ_CX_REFRESH(guest);
             break;
@@ -108,11 +108,11 @@ drop:
 
 static void host_worker_fn(s32 handle, Protocol *proto)
 {
-    og::Poll p;
-    og::Events evs;
+    og::Poll poll;
+    og::Events events;
     Guest *guests = new Guest[YKZ_NB_CLIENTS];
 
-    if (p.add(handle, YKZ_NB_CLIENTS, og::Poll::e_read|og::Poll::e_shared) < 0) {
+    if (poll.add(handle, YKZ_NB_CLIENTS, og::Poll::e_read|og::Poll::e_shared) < 0) {
         YKZ_LOG("POLL ADD ERROR: %s\n", strerror(errno));
         // @Todo log
         return;
@@ -120,17 +120,17 @@ static void host_worker_fn(s32 handle, Protocol *proto)
 
     for (;;) {
         YKZ_LOG("WAIT FOR EVENT\n");
-        if (p.poll(evs, -1) < 0) {
+        if (poll.poll(events, -1) < 0) {
             continue;
         }
 
-        for (auto ev : evs) {
-            switch (ev.id()) {
+        for (auto event : events) {
+            switch (event.id()) {
             case YKZ_NB_CLIENTS:
-                server_event(handle, guests, p, ev);
+                server_event(handle, guests, poll, event);
                 break;
             default:
-                guest_event(proto, guests[ev.id()], p, ev);
+                guest_event(proto, guests[event.id()], poll, event);
                 break;
             }
         }
