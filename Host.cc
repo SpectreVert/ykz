@@ -71,7 +71,7 @@ guest_event(Protocol *proto, Guest &guest, og::Poll &poll, og::Event event)
             break;
         case data::e_made_progress:
         case data::e_all_done:
-            if (proto->okay(guest)) {
+            if (!proto->okay(guest)) {
                 if (poll.refresh(guest.socketfd, id, og::Poll::e_write) < 0)
                     goto error;
             } break;
@@ -100,10 +100,11 @@ guest_event(Protocol *proto, Guest &guest, og::Poll &poll, og::Event event)
     }
     return;
 error:
-    std::cout << "got error\n";
+    YKZ_LOG("System error: %s\n", strerror(errno));
 drop:
     og::intl::close(guest.socketfd);
     YKZ_CX_RESET(guest);
+    YKZ_LOG("Dropped a client\n");
 }
 
 static void host_worker_fn(s32 handle, Protocol *proto)
