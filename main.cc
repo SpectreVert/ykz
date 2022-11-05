@@ -9,7 +9,7 @@
 
 #include "Host.hpp"
 
-#include "Protocol.hpp"
+#include "Http.hpp"
 
 #include "utils.hpp"
 
@@ -35,15 +35,15 @@ void handle_signals(const std::initializer_list<s32> sigs, void(*handler)(int))
 int main(int ac, char *av[])
 {
     Host h;
-    Protocol p;
+    Http http_prot;
     og::SocketAddr addr(
         og::Ipv4(127, 0, 0, 1), 
         6970
     );
 
-    handle_signals({SIGTERM, SIGHUP, SIGINT, SIGQUIT}, &sigcleanup);
+    handle_signals({SIGTERM, SIGHUP, SIGINT, SIGQUIT, SIGCHLD}, &sigcleanup);
 
-    h.start(addr, &p);
+    h.start(addr, &http_prot);
     h.join();
 
     // ykz::Slab<std::string, 15> slab;

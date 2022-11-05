@@ -20,9 +20,10 @@ struct Guest;
 
 //! Refresh the internal state of the buffer and the meta data.
 #define YKZ_CX_REFRESH(t_guest)\
+    t_guest.offset_buf = 0;\
+    t_guest.offset_file = 0;\
     t_guest.buffer.reset();\
-    t_guest.progress = 0;\
-    t_guest.d = data::e_buffer;
+    t_guest.fpath[0] = '0'
 
 //! Reset the internal state of `info`.
 #define YKZ_CX_RESET(t_guest)\
@@ -40,6 +41,8 @@ enum type : s32 {
     /* e_stream, @Implement */
 };
 
+// @FIXME(SV): e_nothing && e_made_progress can be unified
+//  as e_again
 enum result : s32 {
     e_nothing = 0,
     e_made_progress,
@@ -52,6 +55,7 @@ enum result : s32 {
 result rx_buffer(Guest &info);
 result tx_response(Guest &info);
 result tx_buffer(Guest &info);
+result tx_file(Guest &info);
 
 } // namespace data
 

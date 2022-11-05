@@ -16,6 +16,7 @@
 #include "og/Poll.hpp"
 #include "og/TcpListener.hpp"
 
+#include <climits>
 #include <vector>
 #include <memory>
 #include <thread>
@@ -33,9 +34,13 @@ using og::s64;
 //
 struct Guest {
     s32 socketfd{og::k_bad_socketfd};
-    u64 progress{0};
+
+    // resource fields
+    u64 offset_buf{0};
+    s64 offset_file{0};
+
     StaticBuffer<BUFFER_SIZE> buffer;
-    data::type d{data::e_buffer};
+    char fpath[PATH_MAX];
 };
 
 // Host - server mainframe

@@ -55,7 +55,7 @@ struct Http : Protocol {
         };
 
         method m;
-        char const path[PATH_MAX] = {};
+        char path[PATH_MAX] = {};
         char const fields[NUM_REQ_FIELDS][FIELD_MAX] = {};
     };
 
@@ -76,7 +76,7 @@ struct Http : Protocol {
         };
 
         status s{BAD_REQUEST};
-        char const path[PATH_MAX] = {};
+        char path[PATH_MAX] = {};
         char const fields[NUM_RES_FIELDS][FIELD_MAX] = {};
     };
 
@@ -116,6 +116,8 @@ struct Http : Protocol {
         if ((len = (u64)(v - u - 1)) > sizeof(Request::path)) {
             return Response::REQUEST_URI_TOO_LARGE;
         }
+        std::memset(request.path, 0, sizeof(Request::path));
+        std::strncpy(request.path, u, (u64)(v - u - 1)); 
 
         // check HTTP version
         p = v;
@@ -142,6 +144,8 @@ struct Http : Protocol {
         if ((response.s = parse_request_line(buffer, request)) != Response::OK) {
             goto make_header;
         }
+
+        std::strcpy(info.fpath, request.path);
 
 make_header:
         /* When we arrive here we have completely parsed the request;
