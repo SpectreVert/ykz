@@ -35,12 +35,6 @@ struct Guest;
 
 namespace data {
 
-enum type : s32 {
-    e_buffer = 0,
-    e_file,
-    /* e_stream, @Implement */
-};
-
 // @FIXME(SV): e_nothing && e_made_progress can be unified
 //  as e_again
 enum result : s32 {
