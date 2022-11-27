@@ -87,6 +87,7 @@ struct Http : Protocol {
         u64 len;
         char const *p, *u, *v;
 
+        // supported methods
         static constexpr char method_str[Request::NUM_METHODS][METHOD_MAX] {
             "GET"
         };
@@ -153,11 +154,12 @@ make_header:
 
         buffer.reset();
         auto r = std::snprintf(buffer.data(), buffer.vacant(),
-            "%s%s %i %s" k_CR,
+            "%s%s %i %s%s",
             k_ver_prefix,
             k_ver_number,
             response.s,
-            status_to_str(response.s)
+            status_to_str(response.s),
+            k_CR k_CR
         );
 
         assert(r > 0);
@@ -166,6 +168,8 @@ make_header:
         } else {
             buffer.cursor += r;
         }
+
+        // fields here-- but remove one k_CR from above
 
         return 0;
     }

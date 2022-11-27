@@ -59,6 +59,7 @@ server_event(s32 handle, Guest *guests, og::Poll &poll, og::Event &event)
 static void
 guest_event(Protocol *proto, Guest &guest, og::Poll &poll, og::Event event)
 {
+    // FIXME(SV): switch on guest.s instead
 
     auto id = event.id();
 
@@ -66,7 +67,7 @@ guest_event(Protocol *proto, Guest &guest, og::Poll &poll, og::Event event)
         goto error;
 
     if (event.is_readable()) {
-        switch (data::rx_buffer(guest)) {
+        switch (data::rx_header(guest)) {
         case data::e_nothing:
             break;
         case data::e_made_progress:

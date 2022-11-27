@@ -20,10 +20,10 @@ struct Guest;
 
 //! Refresh the internal state of the buffer and the meta data.
 #define YKZ_CX_REFRESH(t_guest)\
-    t_guest.offset_buf = 0;\
-    t_guest.offset_file = 0;\
-    t_guest.buffer.reset();\
-    t_guest.fpath[0] = '0'
+    t_guest.header.reset();\
+    t_guest.offset_header = 0;\
+    ::close(t_guest.resourcefd);\
+    t_guest.offset_resource = 0
 
 //! Reset the internal state of `info`.
 #define YKZ_CX_RESET(t_guest)\
@@ -46,9 +46,9 @@ enum result : s32 {
     e_error = -1,
 };
 
-result rx_buffer(Guest &info);
+result rx_header(Guest &info);
 result tx_response(Guest &info);
-result tx_buffer(Guest &info);
+result tx_header(Guest &info);
 result tx_file(Guest &info);
 
 } // namespace data

@@ -19,18 +19,18 @@ namespace ykz {
 namespace data {
 
 // @Improve Add s32 flags argument to this function
-result rx_buffer(Guest &info)
+result rx_header(Guest &info)
 {
     auto socketfd  = info.socketfd;
-    auto &buffer   = info.buffer;
-    auto prev_size = buffer.size();
+    auto &header   = info.header;
+    auto prev_size = header.size();
     s64  res;
 
     for (;;) {
-        res = ::recv(socketfd, buffer.data(), buffer.vacant(), MSG_NOSIGNAL);
+        res = ::recv(socketfd, header.data(), header.vacant(), MSG_NOSIGNAL);
         if (res > 0) {
-            buffer.cursor += res;
-            if (buffer.size() == buffer.capacity)
+            header.cursor += res;
+            if (header.size() == header.capacity)
                 return e_all_done;
         } else {
             if (res == 0)
@@ -40,7 +40,7 @@ result rx_buffer(Guest &info)
             return e_error;
         }
     }
-    if (prev_size < buffer.size())
+    if (prev_size < header.size())
         return e_made_progress;
 
     return e_nothing;
@@ -50,32 +50,32 @@ result tx_response(Guest &info)
 {
     result r{e_nothing};
 
-    if (info.buffer.size() > 0) {
-        r = tx_buffer(info);
+    if (info.header.size() > 0) {
+        r = tx_header(info);
         if (r != e_all_done)
             return r;
     }
 
-    if (std::strlen(info.fpath) > 0) {
+    if (1) {
         return tx_file(info);
     }
 
     return r;
 }
 
-result tx_buffer(Guest &info)
+result tx_header(Guest &info)
 {
     auto socketfd = info.socketfd;
-    auto buffer   = info.buffer;
-    auto prev_offset = info.offset_buf;
+    auto header   = info.header;
+    auto prev_offset = info.offset_header;
     s64 res;
 
     for (;;) {
-        res = ::send(socketfd, buffer.view() + info.offset_buf,
-                     buffer.size() - info.offset_buf, MSG_NOSIGNAL);
+        res = ::send(socketfd, header.view() + info.offset_header,
+                     header.size() - info.offset_header, MSG_NOSIGNAL);
         if (res > 0) {
-            info.offset_buf += res;
-            if (info.offset_buf == buffer.size())
+            info.offset_header += res;
+            if (info.offset_header == header.size())
                 return e_all_done;
         } else {
             if (res == 0)
@@ -85,7 +85,7 @@ result tx_buffer(Guest &info)
             return e_error;
         }
     }
-    if (prev_offset > info.offset_buf)
+    if (prev_offset > info.offset_header)
         return e_made_progress;
 
     return e_nothing; 
@@ -109,17 +109,18 @@ static bool file_open_st(char const *fpath, s32 &t_fd, struct stat &st)
 result tx_file(Guest &info)
 {
     auto socketfd = info.socketfd;
-    auto fpath = info.fpath;
+    auto resourcefd = info.resourcefd;
     struct stat st;
     s64 res;
-    s32 fd;
 
-    if (!file_open_st(fpath, fd, st))
+    std::memset(&st, 0, sizeof(st));
+    if (fstat(resourcefd, &st)) {
         return e_error;
+    }
 
     for (;;) {
-        res = ::sendfile(socketfd, fd, &info.offset_file, st.st_size);
-        if (res > 0 && info.offset_file == st.st_size) {
+        res = ::sendfile(socketfd, resourcefd, &info.offset_resource, st.st_size);
+        if (res > 0 && info.offset_resource == st.st_size) {
             return e_all_done;
         } else {
             if (res == 0)

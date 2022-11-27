@@ -5,6 +5,7 @@ include config.mk
 OBJ = main.o\
 	  Host.o\
 	  utils.o\
+	  modules/http_mini.o
 
 all: options ykz
 
@@ -15,9 +16,10 @@ ykz: config.mk ${OBJ}
 .cc.o:
 	${CXX} ${CXXFLAGS} -c $< -o ${basename $<}.o
 
-main.o: Protocol.hpp config.mk ykz.config.hpp
-Host.o: Host.hpp Protocol.hpp config.mk ykz.config.hpp
-utils.o: utils.hpp Protocol.hpp config.mk ykz.config.hpp
+main.o: config.mk ykz.config.hpp
+Host.o: Host.hpp config.mk ykz.config.hpp
+utils.o: utils.hpp config.mk ykz.config.hpp
+modules/http_mini.o: modules/http_mini.hpp
 
 options:
 	@echo ykz build options:

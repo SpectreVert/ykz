@@ -9,7 +9,7 @@
 
 #include "Host.hpp"
 
-#include "Http.hpp"
+#include "modules/http_mini.hpp"
 
 #include "utils.hpp"
 
@@ -35,7 +35,7 @@ void handle_signals(const std::initializer_list<s32> sigs, void(*handler)(int))
 int main(int ac, char *av[])
 {
     Host h;
-    Http http_prot;
+    http::Mini prot;
     og::SocketAddr addr(
         og::Ipv4(127, 0, 0, 1), 
         6970
@@ -43,7 +43,7 @@ int main(int ac, char *av[])
 
     handle_signals({SIGTERM, SIGHUP, SIGINT, SIGQUIT, SIGCHLD}, &sigcleanup);
 
-    h.start(addr, &http_prot);
+    h.start(addr, &prot);
     h.join();
 
     // ykz::Slab<std::string, 15> slab;

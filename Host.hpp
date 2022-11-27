@@ -33,19 +33,29 @@ using og::s64;
 // Guest - visitor portfolio
 //
 struct Guest {
+    static constexpr auto k_bad_file{og::k_bad_socketfd};
+
     s32 socketfd{og::k_bad_socketfd};
 
-    // resource fields
-    u64 offset_buf{0};
-    s64 offset_file{0};
+    enum {
+        VACANT,
+        RX_HEADER,
+        TX_HEADER,
+        TX_FILE,
 
-    StaticBuffer<BUFFER_SIZE> buffer;
-    char fpath[PATH_MAX];
+    } s{VACANT};
+
+    StaticBuffer<BUFFER_SIZE> header;
+    u64 offset_header{0};
+
+    s32 resourcefd{k_bad_file};
+    s64 offset_resource{0};
 };
 
 // Host - server mainframe
 //
 struct Host {
+    // FIXME(SV): transform to atomic<bool>
     bool is_started{false};
     og::TcpListener m_insock{};
     std::thread m_workers[NB_WORKERS];
