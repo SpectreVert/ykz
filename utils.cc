@@ -19,10 +19,10 @@ namespace ykz {
 namespace data {
 
 // @Improve Add s32 flags argument to this function
-result rx_header(Guest &info)
+result rx_header(Guest_Info &guest)
 {
-    auto socketfd  = info.socketfd;
-    auto &header   = info.header;
+    auto socketfd  = guest.socketfd;
+    auto &header   = guest.header;
     auto prev_size = header.size();
     s64  res;
 
@@ -46,36 +46,36 @@ result rx_header(Guest &info)
     return e_nothing;
 }
 
-result tx_response(Guest &info)
+result tx_response(Guest_Info &guest)
 {
     result r{e_nothing};
 
-    if (info.header.size() > 0) {
-        r = tx_header(info);
+    if (guest.header.size() > 0) {
+        r = tx_header(guest);
         if (r != e_all_done)
             return r;
     }
 
     if (1) {
-        return tx_file(info);
+        return tx_file(guest);
     }
 
     return r;
 }
 
-result tx_header(Guest &info)
+result tx_header(Guest_Info &guest)
 {
-    auto socketfd = info.socketfd;
-    auto header   = info.header;
-    auto prev_offset = info.offset_header;
+    auto socketfd = guest.socketfd;
+    auto header   = guest.header;
+    auto prev_offset = guest.header_offset;
     s64 res;
 
     for (;;) {
-        res = ::send(socketfd, header.view() + info.offset_header,
-                     header.size() - info.offset_header, MSG_NOSIGNAL);
+        res = ::send(socketfd, header.view() + guest.header_offset,
+                     header.size() - guest.header_offset, MSG_NOSIGNAL);
         if (res > 0) {
-            info.offset_header += res;
-            if (info.offset_header == header.size())
+            guest.header_offset += res;
+            if (guest.header_offset == header.size())
                 return e_all_done;
         } else {
             if (res == 0)
@@ -85,7 +85,7 @@ result tx_header(Guest &info)
             return e_error;
         }
     }
-    if (prev_offset > info.offset_header)
+    if (prev_offset > guest.header_offset)
         return e_made_progress;
 
     return e_nothing; 
@@ -106,10 +106,12 @@ static bool file_open_st(char const *fpath, s32 &t_fd, struct stat &st)
     return true;
 }
 
-result tx_file(Guest &info)
+// @Todo @Refactor In the long term we want to use upper/lower file
+// ranges and implement a real tx_file function (not using sendfile)
+result tx_file(Guest_Info &guest)
 {
-    auto socketfd = info.socketfd;
-    auto resourcefd = info.resourcefd;
+    auto socketfd = guest.socketfd;
+    auto resourcefd = guest.file.fd;
     struct stat st;
     s64 res;
 
@@ -119,8 +121,8 @@ result tx_file(Guest &info)
     }
 
     for (;;) {
-        res = ::sendfile(socketfd, resourcefd, &info.offset_resource, st.st_size);
-        if (res > 0 && info.offset_resource == st.st_size) {
+        res = ::sendfile(socketfd, resourcefd, &guest.file.offset, st.st_size);
+        if (res > 0 && guest.file.offset == st.st_size) {
             return e_all_done;
         } else {
             if (res == 0)

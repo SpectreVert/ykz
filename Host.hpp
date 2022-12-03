@@ -30,8 +30,31 @@ namespace ykz {
 using og::u32;
 using og::s64;
 
-// Guest - visitor portfolio
+// Guest_Info - visitor portfolio
 //
+struct Guest_Info {
+    enum state {
+        VACANT,
+        RX_HEADER,
+        TX_HEADER,
+        TX_FILE
+    };
+    
+    s32 socketfd{og::k_bad_socketfd};
+
+    StaticBuffer<HEADER_SIZE> header;
+    u64 header_offset{0};
+
+    bool send_file{false};
+    struct {
+        s32 fd;
+        s64 offset;
+        u64 upper;
+        u64 lower;
+    } file;
+};
+
+/*
 struct Guest {
     static constexpr auto k_bad_file{og::k_bad_socketfd};
 
@@ -43,20 +66,20 @@ struct Guest {
         TX_HEADER,
         TX_FILE,
 
-    } s{VACANT};
+    } state{VACANT};
 
-    StaticBuffer<BUFFER_SIZE> header;
+    StaticBuffer<HEADER_SIZE> header;
     u64 offset_header{0};
 
     s32 resourcefd{k_bad_file};
     s64 offset_resource{0};
-};
+};*/
 
 // Host - server mainframe
 //
 struct Host {
-    // FIXME(SV): transform to atomic<bool>
     bool is_started{false};
+
     og::TcpListener m_insock{};
     std::thread m_workers[NB_WORKERS];
 

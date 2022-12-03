@@ -7,18 +7,18 @@
 #define CLOSE_ON_RESPONSE false 
 
 //! Type : u64
-//! Usage: Size in bytes of the message buffer
+//! Usage: Size in bytes of the header buffer
 //!
-#define BUFFER_SIZE 4096
+#define HEADER_SIZE 4096
 
 //! Type : u64
-//! Usage: Number of poll workers
+//! Usage: Number of connection worker threads
 //!
 #define NB_WORKERS 4
 
 //! Type : u64
-//! Usage: Number of client slots for each worker
+//! Usage: Number of max open connections for a given worker
 //!
-#define GUESTS_MAX 64
+#define NB_GUESTS 64
 
 #endif /* YKZ_CONFIG_HPP_ */

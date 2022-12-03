@@ -16,7 +16,7 @@
 namespace ykz {
 
 static void
-server_event(s32 handle, Guest *guests, og::Poll &poll, og::Event &event)
+server_event(s32 handle, og::Poll &poll, og::Event &event, Guest_Info *slots)
 {
     s32 newsock;
     og::SocketAddr addr{{0, 0, 0, 0}, 0};
@@ -32,14 +32,15 @@ server_event(s32 handle, Guest *guests, og::Poll &poll, og::Event &event)
         return;
     }
     
+
     u32 id = 0;
-    for (; id < GUESTS_MAX; id++) {
-        if (guests[id].socketfd == og::k_bad_socketfd) {
+    for (; id < NB_GUESTS; id++) {
+        if (slots[id].socketfd == og::k_bad_socketfd) {
             break;
         }
     }
 
-    if (id == GUESTS_MAX) {
+    if (id == NB_GUESTS) {
         YKZ_LOG("NO MORE ROOM\n");
         og::intl::close(newsock);
         return;
@@ -51,58 +52,56 @@ server_event(s32 handle, Guest *guests, og::Poll &poll, og::Event &event)
         return;
     }
 
-    YKZ_CX_RESET(guests[id]);
-    guests[id].socketfd = newsock;
+    YKZ_CX_RESET(slots[id]);
+    slots[id].socketfd = newsock;
     YKZ_LOG("Accepted new client\n");
 }
 
 static void
-guest_event(Protocol *proto, Guest &guest, og::Poll &poll, og::Event event)
-{
-    // FIXME(SV): switch on guest.s instead
-
+guest_event(
+    Protocol *proto, og::Poll &poll, og::Event event,
+    Guest_Info &guest, Guest_Info::state &s
+) {
+    auto got_syserror{false};
     auto id = event.id();
 
-    if (event.is_error())
-        goto error;
-
-    if (event.is_readable()) {
+    if (event.is_error()) {
+        got_syserror = true;
+    } else if (s == Guest_Info::RX_HEADER) {
         switch (data::rx_header(guest)) {
         case data::e_nothing:
-            break;
+            return;
         case data::e_made_progress:
         case data::e_all_done:
             if (!proto->okay(guest)) {
                 if (poll.refresh(guest.socketfd, id, og::Poll::e_write) < 0)
-                    goto error;
-            } break;
+                    got_syserror = true;
+            s = Guest_Info::TX_HEADER; // we mark as ready for response
+            } return;
         case data::e_connection_closed:
-            goto drop;
+            break;
         case data::e_error:
-            goto error;
+            got_syserror = true;
         }
-    }
-
-    if (event.is_writable()) {
+    } else if (s == Guest_Info::TX_HEADER) {
         switch (data::tx_response(guest)) {
         case data::e_nothing:
         case data::e_made_progress:
-            break;
+            return;
         case data::e_all_done:
             if (poll.refresh(guest.socketfd, id, og::Poll::e_read) < 0)
-                goto error;
+                got_syserror = true;
             YKZ_CX_REFRESH(guest);
-            break;
+            return;
         case data::e_connection_closed:
-            goto drop;
+            break;
         case data::e_error:
-            goto error;
+            got_syserror = true;
         }
     }
-    return;
-error:
-    YKZ_LOG("System error: %s\n", strerror(errno));
-drop:
+
+    if (got_syserror)
+        YKZ_LOG("System error: %s\n", strerror(errno));
     og::intl::close(guest.socketfd);
     YKZ_CX_RESET(guest);
     YKZ_LOG("Dropped a client\n");
@@ -112,9 +111,10 @@ static void host_worker_fn(s32 handle, Protocol *proto)
 {
     og::Poll poll;
     og::Events events;
-    Guest *guests = new Guest[GUESTS_MAX];
+    auto slots  = new Guest_Info[NB_GUESTS];
+    auto states = new Guest_Info::state[NB_GUESTS];
 
-    if (poll.add(handle, GUESTS_MAX, og::Poll::e_read|og::Poll::e_shared) < 0) {
+    if (poll.add(handle, NB_GUESTS, og::Poll::e_read|og::Poll::e_shared) < 0) {
         YKZ_LOG("POLL ADD ERROR: %s\n", strerror(errno));
         // @Todo log
         return;
@@ -128,11 +128,12 @@ static void host_worker_fn(s32 handle, Protocol *proto)
 
         for (auto event : events) {
             switch (event.id()) {
-            case GUESTS_MAX:
-                server_event(handle, guests, poll, event);
+            case NB_GUESTS:
+                server_event(handle, poll, event, slots);
                 break;
             default:
-                guest_event(proto, guests[event.id()], poll, event);
+                guest_event(proto, poll, event, 
+                            slots[event.id()], states[event.id()]);
                 break;
             }
         }
@@ -141,6 +142,8 @@ static void host_worker_fn(s32 handle, Protocol *proto)
 
 void Host::start(og::SocketAddr &addr, Protocol *proto)
 {
+    // @Refactor I think we would like to run this hook
+    // once for every worker thread.
     proto->init();
 
     if (m_insock.bind(addr) < 0) {

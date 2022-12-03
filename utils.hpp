@@ -16,16 +16,18 @@
 
 namespace ykz {
 
-struct Guest;
+struct Guest_Info;
 
-//! Refresh the internal state of the buffer and the meta data.
+//! refresh after ending a request-response cycle
 #define YKZ_CX_REFRESH(t_guest)\
     t_guest.header.reset();\
-    t_guest.offset_header = 0;\
-    ::close(t_guest.resourcefd);\
-    t_guest.offset_resource = 0
+    t_guest.header_offset = 0;\
+    t_guest.file.fd = 0;\
+    t_guest.file.offset = 0;\
+    t_guest.file.upper = 0;\
+    t_guest.file.lower = 0;\
 
-//! Reset the internal state of `info`.
+//! reset a connection (no close here)
 #define YKZ_CX_RESET(t_guest)\
     t_guest.socketfd = og::k_bad_socketfd;\
     YKZ_CX_REFRESH(t_guest)
@@ -35,8 +37,6 @@ struct Guest;
 
 namespace data {
 
-// @FIXME(SV): e_nothing && e_made_progress can be unified
-//  as e_again
 enum result : s32 {
     e_nothing = 0,
     e_made_progress,
@@ -46,10 +46,10 @@ enum result : s32 {
     e_error = -1,
 };
 
-result rx_header(Guest &info);
-result tx_response(Guest &info);
-result tx_header(Guest &info);
-result tx_file(Guest &info);
+result rx_header(Guest_Info &guest);
+result tx_response(Guest_Info &guest);
+result tx_header(Guest_Info &guest);
+result tx_file(Guest_Info &guest);
 
 } // namespace data
 
