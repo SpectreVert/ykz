@@ -10,14 +10,17 @@
 #include "og/internal.hpp"
 #include "og/TcpStream.hpp"
 
+#include <algorithm>
 #include <iostream>
 #include <fcntl.h>
 
 namespace ykz {
 
 static void
-server_event(s32 handle, og::Poll &poll, og::Event &event, Guest_Info *slots)
-{
+server_event(
+    s32 handle, og::Poll &poll, og::Event &event,
+    Guest_Info *slots, Guest_Info::state *states
+){
     s32 newsock;
     og::SocketAddr addr{{0, 0, 0, 0}, 0};
 
@@ -33,15 +36,15 @@ server_event(s32 handle, og::Poll &poll, og::Event &event, Guest_Info *slots)
     }
     
 
-    u32 id = 0;
+    u64 id = 0;
     for (; id < NB_GUESTS; id++) {
-        if (slots[id].socketfd == og::k_bad_socketfd) {
+        if (states[id] == Guest_Info::VACANT) {
             break;
         }
     }
 
     if (id == NB_GUESTS) {
-        YKZ_LOG("NO MORE ROOM\n");
+        YKZ_LOG("NO MORE ROOM IN HELL\n");
         og::intl::close(newsock);
         return;
     }
@@ -54,6 +57,7 @@ server_event(s32 handle, og::Poll &poll, og::Event &event, Guest_Info *slots)
 
     YKZ_CX_RESET(slots[id]);
     slots[id].socketfd = newsock;
+    states[id] = Guest_Info::RX_MODE;
     YKZ_LOG("Accepted new client\n");
 }
 
@@ -61,63 +65,80 @@ static void
 guest_event(
     Protocol *proto, og::Poll &poll, og::Event event,
     Guest_Info &guest, Guest_Info::state &s
-) {
-    auto got_syserror{false};
+){
+    bool header_filled{false};
     auto id = event.id();
 
-    if (event.is_error()) {
-        got_syserror = true;
-    } else if (s == Guest_Info::RX_HEADER) {
+    if (event.is_error())
+        goto error;
+
+    if (event.is_readable()) {
         switch (data::rx_header(guest)) {
         case data::e_nothing:
-            return;
-        case data::e_made_progress:
+            break;
         case data::e_all_done:
+            header_filled = true;
+        case data::e_made_progress:
             if (!proto->okay(guest)) {
-                if (poll.refresh(guest.socketfd, id, og::Poll::e_write) < 0)
-                    got_syserror = true;
-            s = Guest_Info::TX_HEADER; // we mark as ready for response
-            } return;
+                if (poll.refresh(guest.socketfd, id, og::Poll::e_write)) {
+                    goto error;
+                }
+                s = Guest_Info::TX_MODE;
+                break;
+            } else if (header_filled) {
+                goto drop;
+            } break;
         case data::e_connection_closed:
-            break;
+            goto drop;
         case data::e_error:
-            got_syserror = true;
-        }
-    } else if (s == Guest_Info::TX_HEADER) {
-        switch (data::tx_response(guest)) {
-        case data::e_nothing:
-        case data::e_made_progress:
-            return;
-        case data::e_all_done:
-            if (poll.refresh(guest.socketfd, id, og::Poll::e_read) < 0)
-                got_syserror = true;
-            YKZ_CX_REFRESH(guest);
-            return;
-        case data::e_connection_closed:
-            break;
-        case data::e_error:
-            got_syserror = true;
+            goto error;
         }
     }
 
-    if (got_syserror)
-        YKZ_LOG("System error: %s\n", strerror(errno));
+    if (event.is_writable()) {
+        switch (data::tx_response(guest)) {
+        case data::e_nothing:
+        case data::e_made_progress:
+            break;
+        case data::e_all_done:
+            if (!poll.refresh(guest.socketfd, id, og::Poll::e_read)) {
+                YKZ_CX_REFRESH(guest);
+                s = Guest_Info::RX_MODE;
+                break;
+            }
+            goto error;
+        case data::e_connection_closed:
+            goto drop;
+        case data::e_error:
+            goto error;
+        }
+    }
+    return;
+
+error:
+    std::cout << "System error: " << strerror(errno) << "\n";
+drop:
+    YKZ_LOG("Drop client\n");
     og::intl::close(guest.socketfd);
     YKZ_CX_RESET(guest);
-    YKZ_LOG("Dropped a client\n");
+    s = Guest_Info::VACANT;
 }
 
 static void host_worker_fn(s32 handle, Protocol *proto)
 {
     og::Poll poll;
     og::Events events;
-    auto slots  = new Guest_Info[NB_GUESTS];
-    auto states = new Guest_Info::state[NB_GUESTS];
+    Guest_Info slots[NB_GUESTS];
+    Guest_Info::state states[NB_GUESTS];
 
     if (poll.add(handle, NB_GUESTS, og::Poll::e_read|og::Poll::e_shared) < 0) {
         YKZ_LOG("POLL ADD ERROR: %s\n", strerror(errno));
         // @Todo log
         return;
+    }
+
+    for (u64 i = 0; i < NB_GUESTS; i++) {
+        states[i] = Guest_Info::VACANT;
     }
 
     for (;;) {
@@ -129,11 +150,10 @@ static void host_worker_fn(s32 handle, Protocol *proto)
         for (auto event : events) {
             switch (event.id()) {
             case NB_GUESTS:
-                server_event(handle, poll, event, slots);
+                server_event(handle, poll, event, slots, states);
                 break;
             default:
-                guest_event(proto, poll, event, 
-                            slots[event.id()], states[event.id()]);
+                guest_event(proto, poll, event, slots[event.id()], states[event.id()]);
                 break;
             }
         }

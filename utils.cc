@@ -56,7 +56,7 @@ result tx_response(Guest_Info &guest)
             return r;
     }
 
-    if (1) {
+    if (0) {
         return tx_file(guest);
     }
 
