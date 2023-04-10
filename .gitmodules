@@ -1,3 +1,0 @@
-[submodule "deps/libOG"]
-	path = deps/libOG
-	url = https://github.com/SpectreVert/libOG

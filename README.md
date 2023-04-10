@@ -71,7 +71,7 @@ int main(int ac, char *av[])
 
 ### See also
 
-A HTTP GET/HEAD-only implementation is provided in `protocols/http_mini/`. The goal is to
+A **HTTP/1.1 GET/HEAD**-only implementation is provided in [protocols/http_mini/][protocols-http-url]. The goal is to
 support delivering static content and that's it.
 
 I'm planning to add a game implementation with more complex logic. Be back :soon:
@@ -98,3 +98,4 @@ TDB
 [license-badge]: https://img.shields.io/badge/license-MIT-blue
 [license-url]: https://github.com/SpectreVert/ykz/blob/master/LICENSE
 [config-url]: https://github.com/SpectreVert/ykz/blob/master/ykz.config.hpp
+[protocols-http-url]: https://github.com/SpectreVert/ykz/blob/master/protocols/http1_1
